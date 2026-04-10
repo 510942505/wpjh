@@ -1,0 +1,1868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>2026南昌中考智能填报助手</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: block;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="85" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="95" cy="75" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="10" cy="90" r="1.5" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+            pointer-events: none;
+        }
+        .card {
+            width: 100%;
+            background: #ffffff;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 20px 16px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '🎓';
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 50px;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+        .header::after {
+            content: '📚';
+            position: absolute;
+            left: 10px;
+            bottom: 10px;
+            font-size: 40px;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .sub-header {
+            font-size: 0.85rem;
+            margin-top: 6px;
+            opacity: 0.9;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .control-panel {
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2edf2;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .controls-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .controls-right {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .hide-label label {
+            display: none !important;
+        }
+        .filter-row {
+            display: flex;
+            gap: 4px;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .filter-row .input-group {
+            flex: 1;
+            min-width: 0;
+            justify-content: space-between;
+        }
+       .input-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    background: white;
+    padding: 0 12px;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid #d4e0e8;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.input-group:hover {
+    border-color: #2a5298;
+}
+.input-group:focus-within {
+    border-color: #2a5298;
+    box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.15);
+}
+.input-group label {
+    font-weight: 600;
+    color: #1f3a5f;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+.input-group input, .input-group select {
+    padding: 0;
+    font-size: 0.9rem;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-weight: 500;
+    flex: 1;
+    text-align: center;
+}
+.input-group input::placeholder {
+    color: #e57373;
+    opacity: 0.85;
+    font-size: 0.88rem;
+}
+.input-group input.input-error {
+    border-color: #e74c3c !important;
+    background-color: #fef0f0;
+}
+.input-group input.input-error::placeholder {
+    color: #e74c3c !important;
+    opacity: 1 !important;
+    font-weight: 600 !important;
+}
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+.input-group input.shake {
+    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+/* 强制姓名框和分数框完全一样 */
+#studentName {
+  text-align: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  flex: 1 !important;
+}
+.btn-primary { 
+    flex: 1;
+    min-width: 100px;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    background: linear-gradient(135deg, #ff5722, #ff9800);
+}
+.btn-te { 
+    flex: 1;
+    min-width: 100px;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    background: linear-gradient(135deg, #e67e22, #f39c12); 
+}
+.btn-junheng { 
+    flex: 1;
+    min-width: 100px;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    background: linear-gradient(135deg, #2a5298, #1e3c72); 
+}
+        .area-score-row {
+            display: flex;
+            gap: 8px;
+        }
+        .area-score-row .input-group {
+            flex: 1;
+        }
+        .two-columns {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 16px;
+            background: #ffffff;
+        }
+        .left-column, .right-column {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #eef2f8;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .section-header {
+            background: linear-gradient(135deg, #f8fafd 0%, #f0f4f9 100%);
+            padding: 12px 16px;
+            border-bottom: 2px solid #e2edf2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1f3a5f;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .phone-btn-inline {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.5px;
+        }
+        .phone-btn-inline:active {
+            opacity: 0.8;
+            transform: scale(0.97);
+        }
+        .table-wrapper {
+            flex: 1;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .recommendation-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        .recommendation-table th {
+            background: #f5f8fc;
+            color: #1f3a5f;
+            font-weight: 700;
+            padding: 6px 4px;
+            border-bottom: 2px solid #e0e8f0;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .recommendation-table td {
+            padding: 6px 4px;
+            border-bottom: 1px solid #f0f4fa;
+            vertical-align: middle;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .recommendation-table tr:hover {
+            background-color: #fafdff;
+        }
+        .serial-number {
+            font-weight: 700;
+            color: #1e4663;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            background: #eef2f8;
+        }
+        .serial-number:active {
+            opacity: 0.7;
+            background: #d4e0e8;
+        }
+        .school-name {
+            font-weight: 700;
+            color: #1e4663;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .school-name:active {
+            opacity: 0.7;
+        }
+        .score-click {
+            cursor: pointer;
+            font-weight: 700;
+            color: #c44536;
+            background: #fff3f0;
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+        }
+        .score-click:active {
+            opacity: 0.7;
+        }
+        .type-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .type-badge-public { background: #e3f2fd; color: #1565c0; }
+        .type-badge-private { background: #fff3e0; color: #e65100; }
+        .type-badge-vocational { background: #e8e0f5; color: #6b4c9b; }
+        .志愿标签 {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .tag-junheng { background: #d4f0e8; color: #1e6f5c; }
+        .tag-chong { background: #ffe6d5; color: #c96f0e; }
+        .tag-wen { background: #e0f0e8; color: #2a7f6e; }
+        .tag-bao { background: #ffded9; color: #b3402a; }
+        .tag-custom { background: #e8e0f5; color: #6b4c9b; }
+        .tag-parallel { background: #e3f2fd; color: #1565c0; }
+        .tag-vocational { background: #f3e5f5; color: #7b1fa2; }
+        .te-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin: 8px 12px;
+            border: 1px solid #eef2f8;
+        }
+        .te-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #1e3c72;
+            margin-bottom: 6px;
+        }
+        .te-info {
+            font-size: 0.75rem;
+            color: #6c86a3;
+            margin: 6px 0;
+            line-height: 1.4;
+        }
+        .te-score {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #e67e22;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #f0e6dc;
+        }
+        .te-tag, .te-feature {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            margin-right: 6px;
+            margin-bottom: 4px;
+        }
+        .te-tag { background: #f0e8ff; color: #6b4c9b; }
+        .te-feature { background: #e8f5e9; color: #2e7d32; }
+        .empty-te {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9aaebf;
+            font-size: 0.85rem;
+        }
+        .process-box {
+            background: #fef9e6;
+            border-left: 4px solid #e67e22;
+            padding: 12px;
+            margin: 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: #b85c00;
+            line-height: 1.5;
+        }
+        .process-box strong {
+            color: #e67e22;
+        }
+        footer {
+            background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%);
+            padding: 12px 16px;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #6c86a3;
+            border-top: 1px solid #e9eff4;
+            line-height: 1.4;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            touch-action: pan-x pan-y pinch-zoom;
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            padding: 14px 16px;
+            color: white;
+            touch-action: pan-x pan-y pinch-zoom;
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.3;
+            text-align: center;
+        }
+        .modal-body {
+            padding: 16px;
+            line-height: 1.6;
+            font-size: 0.9rem;
+            max-height: 70vh;
+            overflow: auto;
+            touch-action: pan-x pan-y pinch-zoom;
+        }
+        .school-detail p {
+            margin: 10px 0;
+        }
+        .school-detail strong {
+            color: #1e3c72;
+        }
+        .school-selector-modal .modal-content {
+            width: 95%;
+            max-width: 500px;
+            height: 70vh;
+            max-height: 550px;
+            display: flex;
+            flex-direction: column;
+        }
+        .school-selector-modal .modal-header {
+            flex-shrink: 0;
+        }
+        .school-selector-modal .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .school-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .selector-search {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        .reset-btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 12px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .reset-btn:active {
+            opacity: 0.8;
+            transform: scale(0.98);
+        }
+        .school-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .school-item:active {
+            background: #f0f4f9;
+        }
+        .school-item .school-name-select {
+            font-weight: 700;
+            color: #1e4663;
+            flex: 2;
+        }
+        .school-item .school-score-select {
+            color: #c44536;
+            font-weight: 600;
+            flex: 1;
+            text-align: center;
+        }
+        .school-item .school-class-select {
+            color: #666;
+            font-size: 0.7rem;
+            flex: 2;
+            text-align: right;
+        }
+        .chart-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 10px 0;
+        }
+        .chart-bars {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 150px;
+            padding: 10px 0;
+        }
+        .bar-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+        .bar {
+            width: 50px;
+            background: linear-gradient(180deg, #2a5298, #1e3c72);
+            border-radius: 8px 8px 4px 4px;
+            transition: height 0.3s ease;
+            min-height: 20px;
+        }
+        .bar-label {
+            margin-top: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #333;
+        }
+        .bar-value {
+            font-size: 0.7rem;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .trend-line {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 8px;
+            padding: 8px;
+            background: #e8f0fe;
+            border-radius: 8px;
+        }
+        .modal-large .modal-content {
+            max-width: 95%;
+            width: auto;
+        }
+        .te-full-table, .junheng-full-table {
+            width: 100%;
+            min-width: 800px;
+            border-collapse: collapse;
+            font-size: 0.7rem;
+        }
+        .te-full-table th, .junheng-full-table th {
+            background: #f5f8fc;
+            padding: 8px 6px;
+            border: 1px solid #e0e8f0;
+            text-align: center;
+            font-weight: 700;
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+        }
+        .te-full-table td, .junheng-full-table td {
+            padding: 6px 4px;
+            border: 1px solid #e0e8f0;
+            vertical-align: top;
+        }
+        .category-title {
+            background: #e8f5e9;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        .junheng-full-table .total-row {
+            background: #fff3e0;
+            font-weight: 700;
+        }
+        /* ✅ 新增：手机号弹窗输入框聚焦样式 */
+        #phoneInput:focus {
+            border-color: #2a5298;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(42,82,152,0.15);
+        }
+        /* ✅ 新增：加载提示样式 */
+        .loading-tip {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c86a3;
+            font-size: 0.9rem;
+        }
+        .loading-tip .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e2edf2;
+            border-top-color: #2a5298;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+/* ⏳ 旋转动画 */
+.rotating {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="header">
+        <h1>🎓 2026 南昌中考志愿智能填报系统</h1>
+        <div class="sub-header">✨ 祝你成功录取心仪高中</div>
+    </div>
+    <div class="control-panel">
+        <div class="controls-left">
+            <div class="filter-row">
+                <div class="input-group hide-label">
+                    <label>🏫 初中性质</label>
+                    <select id="schoolTypeSelect">
+                        <option value="public" selected>公办初中</option>
+                        <option value="private">民办初中</option>
+                    </select>
+                </div>
+                <div class="input-group hide-label">
+                    <label>🎯 高中范围</label>
+                    <select id="highSchoolFilter">
+                        <option value="all" selected>全部</option>
+                        <option value="public_only">公办</option>
+                    </select>
+                </div>
+                <div class="input-group hide-label">
+                    <label>🎨 特长生类型</label>
+                    <select id="teTypeSelect">
+                        <option value="none" selected>无特长</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-row">
+                <div class="input-group hide-label">
+                    <label>📍 报考地区</label>
+                    <select id="areaSelect">
+                        <option value="nanchang" selected>     南昌市</option>
+                        <option value="nanchangxian">     南昌县</option>
+                    </select>
+                </div>
+   <div class="input-group hide-label">
+  <input type="text" id="studentName" placeholder="考生姓名" autocomplete="off">
+</div>
+                <div class="input-group hide-label">
+    <input type="number" id="scoreInput" placeholder="预估总分" step="1" min="360" max="740">
+</div>
+            </div>
+        </div>
+        <div class="controls-right">
+            <button class="btn-junheng" id="showJunhengBtn">均衡生</button>
+            <button class="btn-te" id="showTeBtn">特长生</button>
+            <button class="btn-primary" id="generateBtn" type="button">确定</button>
+        </div>
+    </div>
+    <div class="two-columns">
+        <div class="left-column">
+            <div class="section-header">
+                <div class="section-title">
+                    <span>📋</span> 统招志愿
+                </div>
+                <button class="phone-btn-inline" id="phoneBtn">咨询 15270973037</button>
+            </div>
+            <div class="table-wrapper">
+                <table class="recommendation-table" id="mainTable">
+                    <thead>
+                        <tr><th style="width:50px">序号</th><th>学校名称</th><th>性质</th><th>25 统招线</th><th>志愿类型</th></tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="5" style="text-align:center; padding:50px;">🎯 请选择地区并输入分数点击"确定"</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="right-column">
+            <div class="section-header">
+                <div class="section-title">
+                    <span>🎨</span> 特长志愿
+                </div>
+            </div>
+            <div id="teRecommendList" style="flex:1; overflow-y: auto;">
+                <div class="empty-te">⚪ 请选择报考地区和特长生类型</div>
+            </div>
+            <div class="process-box" id="processBox" style="display: none;">
+                <strong>📝 特长生报考流程及资格</strong><br>
+                1️⃣ 资格要求：在初中阶段获得区级以上体育/艺术等比赛奖项，或具备相应专业水平证明。<br>
+                2️⃣ 报名时间：2026 年 5 月中旬（具体以教育局通知为准），在初中学校统一报名。<br>
+                3️⃣ 专业测试：6 月上旬参加报考学校组织的特长专业测试，测试合格者获得特长生资格。<br>
+                4️⃣ 志愿填报：中考成绩公布后，在提前批次填报特长志愿（只能填报 1 所）。<br>
+                5️⃣ 录取规则：按文件规定的文化控制线和录取原则择优录取。
+            </div>
+        </div>
+    </div>
+    <footer id="footerText">⏰前三所均衡 3 选 1，根据中考预估分数和实际情况填报，特长生根据控制线折算择优推荐，数据全部来源 2025 年官方公布/仅供参考！</footer>
+</div>
+<!-- 学校选择器弹窗（统招志愿用） -->
+<div id="schoolSelectorModal" class="modal school-selector-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="selectorTitle">🏫 选择学校</h3>
+        </div>
+        <div class="modal-body">
+            <input type="text" id="schoolSearchInput" class="selector-search" placeholder="🔍 搜索学校名称...">
+            <div id="schoolListContainer" class="school-list"></div>
+            <button class="reset-btn" id="resetRowBtn">🔄 重置</button>
+        </div>
+    </div>
+</div>
+<!-- 均衡学校选择器弹窗 -->
+<div id="junhengSelectorModal" class="modal school-selector-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>⚖️ 选择均衡学校</h3>
+        </div>
+        <div class="modal-body">
+            <input type="text" id="junhengSearchInput" class="selector-search" placeholder="🔍 搜索学校名称...">
+            <div id="junhengListContainer" class="school-list"></div>
+            <button class="reset-btn" id="resetJunhengRowBtn">🔄 重置</button>
+        </div>
+    </div>
+</div>
+<!-- 学校详情弹窗 -->
+<div id="schoolModal" class="modal">
+    <div class="modal-content" style="width: 90%; max-width: 380px;">
+        <div class="modal-header">
+            <h3 id="schoolModalTitle">🏫 学校详情</h3>
+        </div>
+        <div class="modal-body" id="schoolModalBody"></div>
+    </div>
+</div>
+<!-- 分数线对比弹窗 -->
+<div id="scoreModal" class="modal">
+    <div class="modal-content" style="width: 90%; max-width: 340px;">
+        <div class="modal-header">
+            <h3 id="scoreModalTitle">📊 历年分数线对比</h3>
+        </div>
+        <div class="modal-body" id="scoreModalBody"></div>
+    </div>
+</div>
+<!-- 特长生弹窗 -->
+<div id="teModal" class="modal modal-large">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="teModalTitle">🎨 普通高中特长班信息表</h3>
+        </div>
+        <div class="modal-body" id="teModalBody">
+        </div>
+    </div>
+</div>
+<!-- 均衡生弹窗 -->
+<div id="junhengModal" class="modal modal-large">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="junhengModalTitle">⚖️ 2025 年高中均衡招生计划</h3>
+        </div>
+        <div class="modal-body" id="junhengModalBody">
+        </div>
+    </div>
+</div>
+<!-- ✅ 修改：手机号登录弹窗 - 标题/内容/按钮/样式调整 -->
+<div id="phoneModal" class="modal">
+    <div class="modal-content" style="width:90%; max-width:300px; border-radius:16px;">
+        <div class="modal-header" style="padding:10px 16px;">
+            <h3 style="font-size:0.95rem;">请先验证手机号</h3>
+        </div>
+        <div class="modal-body" style="text-align:center; padding:14px 16px;">
+            <input type="tel" id="phoneInput" placeholder="请输入手机号" 
+                   style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; font-size:0.95rem; margin:6px 0;" 
+                   maxlength="11" pattern="[0-9]{11}">
+            <button id="phoneLoginBtn" class="btn-primary" style="width:100%; margin-top:8px; padding:10px; font-size:0.9rem;">一键登录</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// 只提交：姓名、分数、地区（中文）、手机号
+function uploadToTencentCloud() {
+  const phone = document.getElementById('phoneInput').value.trim();
+  const studentName = document.getElementById('studentName').value.trim();
+  const score = document.getElementById('scoreInput').value.trim();
+  const area = "南昌市";
+
+  fetch("https://zhongkao-0gpqd80b5acfc9d1-1410841680.ap-shanghai.app.tcloudbase.com/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      phone: phone,
+      studentName: studentName,
+      score: score,
+      area: area
+    })
+  }).then(()=>{}).catch(()=>{});
+}
+
+const nameInput = document.getElementById('studentName');
+const scoreInput = document.getElementById('scoreInput');
+const generateBtn = document.getElementById('generateBtn');
+
+// 输入时自动清除错误状态（完全保留原逻辑）
+[nameInput, scoreInput].forEach(el => {
+    el.addEventListener('input', () => {
+        el.classList.remove('input-error', 'shake');
+        if(el.value.trim()){
+            if(el.id === 'studentName') el.placeholder = '考生姓名';
+            if(el.id === 'scoreInput') el.placeholder = '预估总分';
+        }
+    });
+    el.addEventListener('focus', () => el.classList.remove('input-error'));
+});
+
+// 校验失败：显示红字提示 + 触发抖动（完全保留原逻辑）
+function showError(el, msg) {
+    el.classList.add('input-error');
+    el.classList.remove('shake');
+    void el.offsetWidth;
+    el.classList.add('shake');
+    el.placeholder = msg;
+    setTimeout(() => el.classList.remove('shake'), 400);
+}
+
+let currentArea = 'nanchang';
+
+// 🔴 核心修复：恢复「确定按钮点击加载学校」的原逻辑
+document.addEventListener('DOMContentLoaded', function() {
+  // 1. 绑定确定按钮，点击后加载学校（原逻辑）
+  if(generateBtn){
+    generateBtn.addEventListener('click', function(){
+  const name = document.getElementById('name').value.trim();
+  const score = document.getElementById('score').value.trim();
+  const last = localStorage.getItem('last_user');
+  if (last === name + '_' + score) {
+    if(typeof loadSchools === 'function') loadSchools();
+    return;
+  }
+  document.getElementById('phoneModal').style.display = 'flex';
+});
+  }
+
+  // 2. 绑定登录按钮，点击后存数据 + 关闭弹窗
+  const loginBtn = document.getElementById('loginBtn');
+  if(loginBtn){
+    loginBtn.onclick = function() {
+  const name = document.getElementById('name').value.trim();
+  const score = document.getElementById('score').value.trim();
+  localStorage.setItem('last_user', name + '_' + score);
+  uploadToTencentCloud();
+  document.getElementById('phoneModal').style.display='none';
+  if(typeof loadSchools === 'function'){
+    loadSchools();
+  }
+}
+  }
+});
+    // 1. 南昌市数据 - defaultScore 改为空字符串
+    const nanchangData = {
+        minScore: 360,
+        maxScore: 740,
+        defaultScore: '',  // ✅ 改为空，显示 placeholder
+        rawSchools: [
+            { name: "师大附中", type: "公办", score: 712, score2024: 704, score2023: 708, address: "青山湖区北京西路 194 号", classes: "强基班 722；竞赛班 717" },
+            { name: "苏圃路二中", type: "公办", score: 710, score2024: 704, score2023: 710, address: "东湖区苏圃路 1 号", classes: "强基班 720；零班 715" },
+            { name: "师大附中高新", type: "公办", score: 705, score2024: 695, score2023: 708, address: "高新区紫阳大道", classes: "强基班 715；培优班 705" },
+            { name: "红谷滩二中", type: "公办", score: 704, score2024: 697, score2023: 702, address: "红谷滩新区绿茵路 1282 号", classes: "竞赛班 714；重点班 709" },
+            { name: "南昌中学 (原三中)", type: "公办", score: 701, score2024: 687, score2023: 694, address: "青山湖区青山湖大道 342 号", classes: "创新班 706；陆班 711" },
+            { name: "江科附中", type: "民办", score: 698, score2024: 683, score2023: 691, address: "京东大道 1118 号", classes: "零零班 722；零班 715；重点班 698" },
+            { name: "南大附中", type: "公办", score: 697, score2024: 678, score2023: 686, address: "南京东路 235 号", classes: "格致班 717；零班 707；重点班 697" },
+            { name: "南昌市外国语学校", type: "公办", score: 693, score2024: 687, score2023: 694, address: "红谷滩区黄岗山路 866 号", classes: "直升班 713；零班 703" },
+            { name: "南昌十九中", type: "公办", score: 688, score2024: 672, score2023: 682, address: "红谷滩区学府大道", classes: "红旗 A 班 708；红旗 B 班 696；重点班 693" },
+            { name: "南昌一中", type: "公办", score: 684, score2024: 668, score2023: 677, address: "西湖区红梅路 266 号", classes: "院士班 694；零班 689" },
+            { name: "朝阳立德", type: "民办", score: 678, score2024: 657, score2023: 702, address: "西湖区水厂路 769 号", classes: "立德班 693；重点班 688" },
+            { name: "二中赣江新区", type: "公办", score: 676, score2024: 649, score2023: null, address: "赣江新区儒乐湖新城", classes: "零班 686" },
+            { name: "十中经开", type: "公办", score: 669, score2024: 665, score2023: 666, address: "经济技术开发区富樱路 928 号", classes: "求真班 669；求实班 674" },
+            { name: "十中阳明", type: "公办", score: 664, score2024: 648, score2023: 666, address: "东湖区阳明路 313 号", classes: "零班 674；重点班 669" },
+            { name: "行知中学 (原铁一)", type: "公办", score: 664, score2024: 647, score2023: 666, address: "西湖区洛阳路 127 号", classes: "行知班 684；综评班 ***" },
+            { name: "南昌五中", type: "民办", score: 662, score2024: 635, score2023: 646, address: "红谷滩区翠苑路 449 号", classes: "飞翔 A  722；飞翔 B 701" },
+            { name: "豫章中学红角洲", type: "公办", score: 660, score2024: 645, score2023: 662, address: "红谷滩区红谷南大道 1268 号", classes: "零班 680；重点班 670" },
+            { name: "豫章中学总校", type: "公办", score: 653, score2024: 640, score2023: 662, address: "东湖区豫章路 125 号", classes: "重点班 673；实验班 663" },
+            { name: "南昌民德", type: "民办", score: 647, score2024: 634, score2023: 649, address: "青云谱区南莲路 176 号", classes: "青云A 710；青云B 677；重点班 647" },
+            { name: "南昌中学 (原八一)", type: "公办", score: 643, score2024: 628, score2023: 634, address: "东湖区三经路 41 号", classes: "国防班 653；重点班 648" },
+            { name: "洪都中学", type: "公办", score: 638, score2024: 633, score2023: 630, address: "青云谱区新溪桥东一路 99 号", classes: "零班 658；重点班 648" },
+            { name: "南师附中", type: "公办", score: 637, score2024: 633, score2023: 636, address: "青山湖区学院路 265 号", classes: "重点班 657；实验班 647" },
+            { name: "复兴外国语", type: "民办", score: 630, score2024: 612, score2023: 617, address: "祥云大道 3999 号", classes: "复兴班 690；重点班 670" },
+            { name: "实验中学", type: "公办", score: 628, score2024: 628, score2023: null, address: "高新区奥体南路 66 号", classes: "艺术特长班 628" },
+            { name: "雷式学校", type: "民办", score: 627, score2024: 619, score2023: 637, address: "青山湖区民安路 388 号", classes: "实验A 701；实验B 681" },
+            { name: "启华双语", type: "民办", score: 614, score2024: 598, score2023: null, address: "红谷滩区启华路 99 号", classes: "重点班 664；国际班 614" },
+            { name: "南昌八中", type: "公办", score: 607, score2024: 601, score2023: 605, address: "西湖区孺子路", classes: "重点班 627；实验班 617" },
+            { name: "湾里一中", type: "公办", score: 606, score2024: 585, score2023: 599, address: "新建区长春湖路 49 号", classes: "重点班 626；实验班 616" },
+            { name: "朝阳中学", type: "公办", score: 599, score2024: 594, score2023: 599, address: "西湖区桂殿路 201 号", classes: "重点班 619；实验班 609" },
+            { name: "二十三中", type: "公办", score: 592, score2024: 592, score2023: 596, address: "青山湖区南京东路 116 号", classes: "空乘特色班 592；人文班 592" },
+            { name: "桑海中学 (赣江新区)", type: "公办", score: 591, score2024: 570, score2023: 599, address: "赣江新区桑海北路", classes: "重点班 601；实验班 595" },
+            { name: "南昌十二中", type: "公办", score: 580, score2024: 565, score2023: 583, address: "西湖区朝阳洲南路 11 号", classes: "艺术/体育班 585；平行班 580" },
+            { name: "南钢学校", type: "公办", score: 573, score2024: 558, score2023: 570, address: "青山湖区南钢大道 535 号", classes: "重点班 593；实验班 583" },
+            { name: "南昌十四中", type: "公办", score: 566, score2024: 550, score2023: 558, address: "青山湖区解放西路 289 号", classes: "重点班 586；实验班 576" },
+            { name: "南昌十八中", type: "公办", score: 563, score2024: 557, score2023: 553, address: "西湖区东书院街 8 号", classes: "艺术特长班 568；平行班 563" },
+            { name: "南昌二十六中", type: "公办", score: 558, score2024: 554, score2023: 563, address: "红谷滩区庐山南大道 159 号", classes: "重点班 573；实验班 568" },
+            { name: "现代外国语", type: "民办", score: 554, score2024: 539, score2023: 599, address: "南昌县迎宾大道", classes: "凌云班 680；重点班 570；实验班 554" },
+            { name: "麻丘高级中学", type: "民办", score: 536, score2024: 521, score2023: 529, address: "高新区航空城大道 5377 号", classes: "重点班 542；实验班 536" },
+            { name: "知行中学", type: "民办", score: 525, score2024: 510, score2023: 529, address: "青山湖区高新五路 398 号", classes: "知行A 664；知行班 637；重点班 558" },
+            { name: "宏宇学校", type: "民办", score: 492, score2024: 477, score2023: 496, address: "青云谱区墅溪路 593 号", classes: "重点班 502；实验班 497" },
+            { name: "金太阳实验中学", type: "民办", score: 472, score2024: 457, score2023: 486, address: "时珍北大道 988 号", classes: "重点班 478；实验班 672" },
+            { name: "致远双语学校", type: "民办", score: 453, score2024: 438, score2023: 486, address: "青山湖区顺外路 299 号", classes: "重点班 458；实验班 453" },
+            { name: "南昌当代学校", type: "民办", score: 450, score2024: 435, score2023: 486, address: "青山湖区南京东路 235 号", classes: "艺术班 450" },
+            { name: "雷式厚一", type: "民办", score: 450, score2024: 435, score2023: 599, address: "青山湖区昌东大道 2288 号", classes: "艺术班 450" },
+            { name: "赫威斯高级中学", type: "民办", score: 450, score2024: 435, score2023: 486, address: "赣江新区李家边路 669 号", classes: "国际班 450" },
+            { name: "育山高级中学", type: "民办", score: 450, score2024: 435, score2023: 486, address: "象湖新城金沙二路 3199 号", classes: "艺术班 450" },
+            { name: "天行创世纪学校", type: "民办", score: 450, score2024: 435, score2023: 495, address: "湾里区招贤路 589 号", classes: "双语班 450" },
+            { name: "江右艺术高中", type: "民办", score: 450, score2024: 435, score2023: 486, address: "红谷滩区龙兴大街 2966 号", classes: "艺术班 450" },
+            { name: "少春中学", type: "民办", score: 450, score2024: 435, score2023: 486, address: "青山湖区北京东路 28 号", classes: "重点班 450" },
+            { name: "仁川中学", type: "民办", score: 450, score2024: 435, score2023: 486, address: "青山湖区东升大道 635 号", classes: "重点班 450" }
+        ],
+        junhengSchoolsList: ["师大附中", "苏圃路二中", "红谷滩二中", "师大附中高新", "南昌中学 (原三中)", "南大附中", "南昌市外国语学校", "南昌十九中", "南昌一中", "二中赣江新区", "十中阳明", "十中经开", "行知中学 (原铁一)", "豫章中学红角洲", "豫章中学总校", "南师附中", "南昌中学 (原八一)", "洪都中学", "实验中学"],
+        teTypes: [
+            {value: "art", label: "美术类"},
+            {value: "music", label: "音乐类"},
+            {value: "dance", label: "舞蹈类"},
+            {value: "academic", label: "学科类"},
+            {value: "sports_integration", label: "体教类"},
+            {value: "humanities", label: "人文类"}
+        ],
+        teData: {
+            art: [
+                { name: "南昌一中", type: "公办", score: 684, controlPercent: 0.80, principle: "专过文排" },
+                { name: "十中阳明", type: "公办", score: 664, controlPercent: 0.85, principle: "专过文排" },
+                { name: "南师附中", type: "公办", score: 637, controlPercent: 0.75, principle: "专过文排" },
+                { name: "实验中学", type: "公办", score: 628, controlPercent: 0.75, principle: "专过文排" },
+                { name: "湾里一中", type: "公办", score: 606, controlPercent: 0.75, principle: "专过文排" },
+                { name: "南昌十二中", type: "公办", score: 580, controlPercent: 0.75, principle: "专过文排" },
+                { name: "南昌十八中", type: "公办", score: 563, controlPercent: 0.75, principle: "专过文排" },
+                { name: "南昌民德", type: "民办", score: 647, controlPercent: 0.75, principle: "专过文排" },
+                { name: "南昌当代学校", type: "民办", score: 450, controlPercent: 0.75, principle: "文过专排" },
+                { name: "知行中学", type: "民办", score: 525, controlPercent: 0.75, principle: "文过专排" },
+                { name: "麻丘高级中学", type: "民办", score: 536, controlPercent: 0.75, principle: "文过专排" },
+                { name: "育山高级中学", type: "民办", score: 450, controlPercent: 0.75, principle: "专过文排" },
+                { name: "致远双语学校", type: "民办", score: 450, controlPercent: 0.75, principle: "专过文排" },
+                { name: "江右艺术高中", type: "民办", score: 450, controlPercent: 0.75, principle: "专过文排" },
+                { name: "宏宇学校", type: "民办", score: 492, controlPercent: 0.75, principle: "专过文排" },
+                { name: "少春中学", type: "民办", score: 450, controlPercent: 0.75, principle: "专过文排" }
+            ],
+            music: [
+                { name: "南昌中学 (原三中)", type: "公办", score: 701, controlPercent: 0.75, principle: "专过文排" },
+                { name: "南大附中", type: "公办", score: 697, controlPercent: 0.75, principle: "文过专排" },
+                { name: "十九中学", type: "公办", score: 688, controlPercent: 0.75, principle: "文过专排" },
+                { name: "南昌一中", type: "公办", score: 684, controlPercent: 0.80, principle: "专过文排" },
+                { name: "实验中学", type: "公办", score: 628, controlPercent: 0.75, principle: "文过专排" },
+                { name: "南昌十二中", type: "公办", score: 580, controlPercent: 0.75, principle: "专过文排" },
+                { name: "南昌十八中", type: "公办", score: 563, controlPercent: 0.75, principle: "专过文排" },
+                { name: "南昌五中", type: "民办", score: 662, controlPercent: 0.75, principle: "文过专排" },
+                { name: "天行创世纪学校", type: "民办", score: 450, controlPercent: 0.75, principle: "专过文排" },
+                { name: "江右艺术高中", type: "民办", score: 450, controlPercent: 0.75, principle: "文过专排" },
+                { name: "宏宇学校", type: "民办", score: 450, controlPercent: 0.65, principle: "专过文排" }
+            ],
+            dance: [
+                { name: "南昌中学 (原三中)", type: "公办", score: 701, controlPercent: 0.75, principle: "专过文排" },
+                { name: "南昌一中", type: "公办", score: 684, controlPercent: 0.80, principle: "专过文排" },
+                { name: "十九中学", type: "公办", score: 688, controlPercent: 0.75, principle: "文过专排" },
+                { name: "实验中学", type: "公办", score: 628, controlPercent: 0.75, principle: "文过专排" },
+                { name: "南昌十八中", type: "公办", score: 563, controlPercent: 0.75, principle: "专过文排" },
+                { name: "育山高级中学", type: "民办", score: 450, controlPercent: 0.75, principle: "专过文排" }
+            ],
+            academic: [
+                { name: "师大附中", type: "公办", score: 712, controlPercent: 0.75, principle: "专过文排" },
+                { name: "红谷滩二中", type: "公办", score: 704, controlPercent: 0.75, principle: "专过文排" },
+                { name: "江科附中", type: "民办", score: 698, controlPercent: 0.75, principle: "专过文排" }
+            ],
+            sports_integration: [
+                { name: "二中赣江新区", type: "公办", score: 676, controlPercent: 0.65, extraCondition: "体育≥54 分", principle: "文过专排" },
+                { name: "十中经开", type: "公办", score: 669, controlPercent: 0.65, extraCondition: "体育≥54 分", principle: "文过专排" },
+                { name: "南昌中学 (原三中)", type: "公办", score: 701, controlPercent: 0.65, extraCondition: "体育≥54 分", principle: "文过专排" },
+                { name: "南昌十二中", type: "公办", score: 580, controlPercent: 0.65, extraCondition: "体育≥54 分", principle: "文过专排" },
+                { name: "十九中学", type: "公办", score: 688, controlPercent: 0.65, extraCondition: "体育≥54 分", principle: "文过专排" },
+                { name: "南昌二十六中", type: "公办", score: 558, controlPercent: 0.65, extraCondition: "体育≥54 分", principle: "文过专排" },
+                { name: "湾里一中", type: "公办", score: 606, controlPercent: 0.65, extraCondition: "体育≥54 分", principle: "文过专排" },
+                { name: "南大附中", type: "公办", score: 697, controlPercent: 0.65, extraCondition: "体育≥54 分", principle: "文过专排" },
+                { name: "南昌一中", type: "公办", score: 684, controlPercent: 0.65, extraCondition: "体育≥54 分", principle: "文过专排" },
+                { name: "麻丘高级中学", type: "民办", score: 536, controlPercent: 0.65, extraCondition: "体育≥54 分", principle: "文过专排" },
+                { name: "育山高级中学", type: "民办", score: 450, controlPercent: 0.65, extraCondition: "体育≥54 分", principle: "文过专排" },
+                { name: "天行创世纪", type: "民办", score: 450, controlPercent: 0.65, extraCondition: "体育≥54 分", principle: "文过专排" },
+                { name: "致远双语", type: "民办", score: 450, controlPercent: 0.65, extraCondition: "体育≥54 分", principle: "文过专排" }
+            ],
+            humanities: [
+                { name: "南昌市外国语学校", type: "公办", score: 693, controlPercent: 0.75, principle: "专过文排" },
+                { name: "十九中学", type: "公办", score: 688, controlPercent: 0.75, principle: "专过文排" },
+                { name: "二十三中", type: "公办", score: 592, controlPercent: 0.75, principle: "专过文排" },
+                { name: "南昌二十六中", type: "公办", score: 558, controlPercent: 0.85, principle: "专过文排" },
+                { name: "行知中学 (原铁一)", type: "公办", score: 664, controlPercent: 0.75, principle: "专过文排" },
+                { name: "南昌一中", type: "公办", score: 684, controlPercent: 0.75, principle: "专过文排" },
+                { name: "南师附中", type: "公办", score: 637, controlPercent: 0.75, principle: "专过文排" }
+            ]
+        },
+        teTableHtml: `
+            <table class="te-full-table">
+                <thead><tr><th>类别</th><th>学校名称</th><th>性质</th><th>招生计划</th><th>报名时间</th><th>测试时间</th><th>25 统招线</th><th>文化控制线</th><th>录取原则</th></tr></thead>
+                <tbody>
+                    <tr class="category-title"><td colspan="9"><strong>🎨 美术类特长</strong></td></tr>
+                    <tr><td>美术类</td><td>南昌一中</td><td>公办</td><td>29 人</td><td>6 月 4 日 -12 日</td><td>6 月 20 日 8:30-11:30</td><td>684</td><td>统招线 80%</td><td>专过文排</td></tr>
+                    <tr><td>美术类</td><td>十中阳明</td><td>公办</td><td>28 人</td><td>6 月 4 日 -11 日</td><td>6 月 20 日上午 8:30</td><td>664</td><td>统招线 85%</td><td>专过文排</td></tr>
+                    <tr><td>美术类</td><td>南师附中</td><td>公办</td><td>16 人</td><td>6 月 5 日 -11 日</td><td>6 月 20 日下午</td><td>637</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>美术类</td><td>实验中学</td><td>公办</td><td>210 人</td><td>即日起</td><td>6 月 20 日上午 8:15</td><td>628</td><td>录取线 75%</td><td>专过文排</td></tr>
+                    <tr><td>美术类</td><td>湾里一中</td><td>公办</td><td>20 人</td><td>6 月 5 日 -13 日</td><td>6 月 22 日</td><td>606</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>美术类</td><td>南昌十二中</td><td>公办</td><td>15 人</td><td>即日起 -6 月 19 日</td><td>6 月 21 日 8:30-12:00</td><td>580</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>美术类</td><td>南昌十八中</td><td>公办</td><td>370 人</td><td>即日起 -18 日</td><td>6 月 22 日 9:00-11:00</td><td>563</td><td>录取线 75%</td><td>专过文排</td></tr>
+                    <tr><td>美术类</td><td>南昌民德</td><td>民办</td><td>15 人</td><td>即日起</td><td>6 月 22 日 8:30</td><td>647</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>美术类</td><td>南昌当代学校</td><td>民办</td><td>10 人</td><td>6 月 5 日 -15 日</td><td>6 月 21 日下午</td><td>450</td><td>统招线 75%</td><td>文过专排</td></tr>
+                    <tr><td>美术类</td><td>知行中学</td><td>民办</td><td>15 人</td><td>6 月 5 日 -20 日</td><td>6 月 22 日 9:00-11:00</td><td>525</td><td>统招线 75%</td><td>文过专排</td></tr>
+                    <tr><td>美术类</td><td>麻丘高级中学</td><td>民办</td><td>23 人</td><td>截止 6 月 15 日</td><td>6 月 22 日 8:30-11:40</td><td>536</td><td>统招线 75%</td><td>文过专排</td></tr>
+                    <tr><td>美术类</td><td>育山高级中学</td><td>民办</td><td>15 人</td><td>6 月 5 日 -19 日</td><td>6 月 20 日</td><td>450</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>美术类</td><td>致远双语学校</td><td>民办</td><td>10 人</td><td>5 月 31 日 -6 月 15 日</td><td>6 月 22 日 9:00</td><td>450</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>美术类</td><td>江右艺术高中</td><td>民办</td><td>9 人</td><td>截止 6 月 15 日</td><td>6 月 21 日</td><td>450</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>美术类</td><td>宏宇学校</td><td>民办</td><td>8 人</td><td>6 月 15 日前</td><td>6 月 22 日 9:00</td><td>492</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>美术类</td><td>少春中学</td><td>民办</td><td>22 人</td><td>5 月 15 日 -6 月 15 日</td><td>6 月 20 日 9:30-12:00</td><td>450</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr class="category-title"><td colspan="9"><strong>🎵 音乐类特长</strong></td></tr>
+                    <tr><td>音乐类</td><td>南昌中学 (原三中)</td><td>公办</td><td>14 人</td><td>6 月 5 日 -10 日</td><td>6 月 15 日</td><td>701</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>音乐类</td><td>南大附中</td><td>公办</td><td>16 人</td><td>6 月 5 日 -12 日</td><td>初试 6 月 14/20 日，复试 6 月 15/21 日</td><td>697</td><td>统招线 75%</td><td>文过专排</td></tr>
+                    <tr><td>音乐类</td><td>十九中学</td><td>公办</td><td>9 人</td><td>6 月 11 日 -16 日</td><td>6 月 20 日</td><td>688</td><td>统招线 75%</td><td>文过专排</td></tr>
+                    <tr><td>音乐类</td><td>南昌一中</td><td>公办</td><td>3 人</td><td>6 月 4 日 -12 日</td><td>6 月 20 日</td><td>684</td><td>统招线 80%</td><td>专过文排</td></tr>
+                    <tr><td>音乐类</td><td>实验中学</td><td>公办</td><td>50 人</td><td>即日起</td><td>6 月 20 日</td><td>628</td><td>录取线 75%</td><td>文过专排</td></tr>
+                    <tr><td>音乐类</td><td>南昌十二中</td><td>公办</td><td>10 人</td><td>即日起 -6 月 19 日</td><td>6 月 21 日</td><td>580</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>音乐类</td><td>南昌十八中</td><td>公办</td><td>50 人</td><td>6 月 5 日 -11 日</td><td>6 月 22 日</td><td>563</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>音乐类</td><td>南昌五中</td><td>民办</td><td>15 人</td><td>6 月 1 日 -19 日</td><td>6 月 20 日</td><td>662</td><td>统招线 75%</td><td>文过专排</td></tr>
+                    <tr><td>音乐类</td><td> 天行创世纪学校</td><td>民办</td><td>20 人</td><td>即日起 -6 月 20 日</td><td>6 月 21 日</td><td>450</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>音乐类</td><td>江右艺术高中</td><td>民办</td><td>3 人</td><td>截止 6 月 15 日</td><td>6 月 21 日</td><td>450</td><td>统招线 75%</td><td>文过专排</td></tr>
+                    <tr><td>音乐类</td><td>宏宇学校</td><td>民办</td><td>5 人</td><td>6 月 15 日前</td><td>6 月 22 日</td><td>450</td><td>统招线 65%</td><td>专过文排</td></tr>
+                    <tr class="category-title"><td colspan="9"><strong>💃 舞蹈类特长</strong></td></tr>
+                    <tr><td>舞蹈类</td><td>南昌中学 (原三中)</td><td>公办</td><td>6 人</td><td>6 月 5 日 -10 日</td><td>6 月 15 日</td><td>701</td><td>统招 75%</td><td>专过文排</td></tr>
+                    <tr><td>舞蹈类</td><td>南昌一中</td><td>公办</td><td>2 人</td><td>6 月 4 日 -12 日</td><td>6 月 20 日</td><td>684</td><td>统招 80%</td><td>专过文排</td></tr>
+                    <tr><td>舞蹈类</td><td>十九中学</td><td>公办</td><td>5 人</td><td>6 月 11 日 -16 日</td><td>6 月 20 日</td><td>688</td><td>统招 75%</td><td>文过专排</td></tr>
+                    <tr><td>舞蹈类</td><td>实验中学</td><td>公办</td><td>25 人</td><td>即日起</td><td>6 月 20 日</td><td>628</td><td>录取 75%</td><td>文过专排</td></tr>
+                    <tr><td>舞蹈类</td><td>南昌十八中</td><td>公办</td><td>50 人</td><td>即日起 -6 月 18 日</td><td>6 月 22 日</td><td>563</td><td>录取 75%</td><td>专过文排</td></tr>
+                    <tr><td>舞蹈类</td><td>育山高级中学</td><td>民办</td><td>5 人</td><td>6 月 5 日 -19 日</td><td>6 月 20 日</td><td>450</td><td>统招 75%</td><td>专过文排</td></tr>
+                    <tr class="category-title"><td colspan="9"><strong>📐 学科类（强基）</strong></td></tr>
+                    <tr><td>学科类</td><td>师大附中</td><td>公办</td><td>40 人</td><td>6 月 9 日 -15 日</td><td>中考后 6 月下旬</td><td>712</td><td>统招 75%</td><td>专过文排</td></tr>
+                    <tr><td>学科类</td><td>红谷滩二中</td><td>公办</td><td>50 人</td><td>6 月 9 日 -15 日</td><td>中考后 6 月下旬</td><td>704</td><td>统招 75%</td><td>专过文排</td></tr>
+                    <tr><td>学科类</td><td>江科附中</td><td>民办</td><td>20 人</td><td>6 月 9 日 -15 日</td><td>中考后 6 月下旬</td><td>698</td><td>统招 75%</td><td>专过文排</td></tr>
+                    <tr class="category-title"><td colspan="9"><strong>🏅 体教融合类</strong></td></tr>
+                    <tr><td>体教融合</td><td>二中赣江新区</td><td>公办</td><td>12 人</td><td>6 月 4 日 -12 日</td><td>6 月 20 日</td><td>676</td><td>统招 65%+ 体育≥54 分</td><td>文过专排</td></tr>
+                    <tr><td>体教融合</td><td>十中经开</td><td>公办</td><td>10 人</td><td>6 月 4 日 -11 日</td><td>6 月 20 日</td><td>669</td><td>统招 65%+ 体育≥54 分</td><td>文过专排</td></tr>
+                    <tr><td>体教融合</td><td>南昌中学 (原三中)</td><td>公办</td><td>15 人</td><td>6 月 5 日 -10 日</td><td>6 月 15 日</td><td>701</td><td>统招 65%+ 体育≥54 分</td><td>文过专排</td></tr>
+                    <tr><td>体教融合</td><td>南昌十二中</td><td>公办</td><td>18 人</td><td>即日起 -6 月 19 日</td><td>6 月 21 日</td><td>580</td><td>统招 65%+ 体育≥54 分</td><td>文过专排</td></tr>
+                    <tr><td>体教融合</td><td>十九中学</td><td>公办</td><td>8 人</td><td>6 月 11 日 -16 日</td><td>6 月 20 日</td><td>688</td><td>统招 65%+ 体育≥54 分</td><td>文过专排</td></tr>
+                    <tr><td>体教融合</td><td>南昌二十六中</td><td>公办</td><td>10 人</td><td>6 月 5 日 -16 日</td><td>6 月 20 日</td><td>558</td><td>统招 65%+ 体育≥54 分</td><td>文过专排</td></tr>
+                    <tr><td>体教融合</td><td>湾里一中</td><td>公办</td><td>12 人</td><td>6 月 5 日 -13 日</td><td>6 月 22 日</td><td>606</td><td>统招 65%+ 体育≥54 分</td><td>文过专排</td></tr>
+                    <tr><td>体教融合</td><td>南大附中</td><td>公办</td><td>12 人</td><td>6 月 5 日 -12 日</td><td>6 月 20 日</td><td>697</td><td>统招 65%+ 体育≥54 分</td><td>文过专排</td></tr>
+                    <tr><td>体教融合</td><td>南昌一中</td><td>公办</td><td>10 人</td><td>6 月 4 日 -12 日</td><td>6 月 20 日</td><td>684</td><td>统招 65%+ 体育≥54 分</td><td>文过专排</td></tr>
+                    <tr><td>体教融合</td><td>麻丘高级中学</td><td>民办</td><td>8 人</td><td>截止 6 月 15 日</td><td>6 月 22 日</td><td>536</td><td>统招 65%+ 体育≥54 分</td><td>文过专排</td></tr>
+                    <tr><td>体教融合</td><td>育山高级中学</td><td>民办</td><td>6 人</td><td>6 月 5 日 -19 日</td><td>6 月 20 日</td><td>450</td><td>统招 65%+ 体育≥54 分</td><td>文过专排</td></tr>
+                    <tr><td>体教融合</td><td>天行创世纪</td><td>民办</td><td>10 人</td><td>即日起 -6 月 20 日</td><td>6 月 21 日</td><td>450</td><td>统招 65%+ 体育≥54 分</td><td>文过专排</td></tr>
+                    <tr><td>体教融合</td><td>致远双语</td><td>民办</td><td>6 人</td><td>5 月 31 日 -6 月 15 日</td><td>6 月 22 日</td><td>450</td><td>统招 65%+ 体育≥54 分</td><td>文过专排</td></tr>
+                    <tr class="category-title"><td colspan="9"><strong>📖 人文类（国学/外语/书法/人文社科）</strong></td></tr>
+                    <tr><td>人文类</td><td>南昌市外国语学校</td><td>公办</td><td>84 人</td><td>6 月 5 日 -12 日</td><td>6 月 20 日</td><td>693</td><td>统招 75%</td><td>专过文排</td></tr>
+                    <tr><td>人文类</td><td>十九中学</td><td>公办</td><td>25 人</td><td>6 月 11 日 -16 日</td><td>6 月 20 日</td><td>688</td><td>统招 75%</td><td>专过文排</td></tr>
+                    <tr><td>人文类</td><td>二十三中</td><td>公办</td><td>30 人</td><td>6 月 5 日 -13 日</td><td>6 月 14 日</td><td>592</td><td>统招 75%</td><td>专过文排</td></tr>
+                    <tr><td>人文类</td><td>南昌二十六中</td><td>公办</td><td>20 人</td><td>5 月 21 日 -28 日</td><td>6 月 15 日</td><td>558</td><td>统招 85%</td><td>专过文排</td></tr>
+                    <tr><td>人文类</td><td>行知中学 (原铁一)</td><td>公办</td><td>25 人</td><td>6 月 5 日 -16 日</td><td>6 月 21 日</td><td>664</td><td>统招 75%</td><td>专过文排</td></tr>
+                    <tr><td>人文类</td><td>南昌一中</td><td>公办</td><td>20 人</td><td>6 月 4 日 -12 日</td><td>6 月 20 日</td><td>684</td><td>统招 75%</td><td>专过文排</td></tr>
+                    <tr><td>人文类</td><td>南师附中</td><td>公办</td><td>15 人</td><td>6 月 5 日 -11 日</td><td>6 月 20 日</td><td>637</td><td>统招 75%</td><td>专过文排</td></tr>
+                </tbody>
+            </table>
+        `,
+        junhengTableHtml: `
+            <table class="junheng-full-table">
+                <thead><tr><th>学校名称</th><th>招生总计划</th><th>均衡计划</th><th>统招计划</th><th>均衡占比</th><th>统招分数线</th></tr></thead>
+                <tbody>
+                    <tr><td>江西师大附中</td><td>690 个</td><td>489 个</td><td>201 个</td><td>70.87%</td><td>712 分</td></tr>
+                    <tr><td>南昌二中苏圃路校区</td><td>300 个</td><td>211 个</td><td>89 个</td><td>70.33%</td><td>710 分</td></tr>
+                    <tr><td>江西师大附中高新校区</td><td>300 个</td><td>211 个</td><td>89 个</td><td>70.33%</td><td>705 分</td></tr>
+                    <tr><td>南昌二中红谷滩校区</td><td>730 个</td><td>514 个</td><td>216 个</td><td>70.41%</td><td>704 分</td></tr>
+                    <tr><td>南昌中学</td><td>600 个</td><td>488 个</td><td>112 个</td><td>81.33%</td><td>701 分</td></tr>
+                    <tr><td>南大附中</td><td>470 个</td><td>329 个</td><td>141 个</td><td>70.00%</td><td>697 分</td></tr>
+                    <tr><td>南昌市外国语学校</td><td>486 个</td><td>341 个</td><td>145 个</td><td>70.16%</td><td>693 分</td></tr>
+                    <tr><td>南昌十九中</td><td>750 个</td><td>549 个</td><td>201 个</td><td>73.20%</td><td>688 分</td></tr>
+                    <tr><td>南昌一中</td><td>670 个</td><td>491 个</td><td>179 个</td><td>73.28%</td><td>684 分</td></tr>
+                    <tr><td>南昌二中赣江新区校区</td><td>650 个</td><td>523 个</td><td>127 个</td><td>80.46%</td><td>676 分</td></tr>
+                    <tr><td>南昌十中经开校区</td><td>705 个</td><td>567 个</td><td>138 个</td><td>80.43%</td><td>669 分</td></tr>
+                    <tr><td>南昌十中阳明校区</td><td>665 个</td><td>537 个</td><td>128 个</td><td>80.75%</td><td>664 分</td></tr>
+                    <tr><td>南昌市行知中学</td><td>570 个</td><td>451 个</td><td>119 个</td><td>79.12%</td><td>664 分</td></tr>
+                    <tr><td>豫章中学红角洲校区</td><td>550 个</td><td>391 个</td><td>159 个</td><td>71.09%</td><td>660 分</td></tr>
+                    <tr><td>豫章中学豫章路校区</td><td>300 个</td><td>211 个</td><td>89 个</td><td>70.33%</td><td>653 分</td></tr>
+                    <tr><td>八一中学</td><td>626 个</td><td>439 个</td><td>187 个</td><td>70.13%</td><td>643 分</td></tr>
+                    <tr><td>洪都中学</td><td>839 个</td><td>672 个</td><td>167 个</td><td>80.10%</td><td>638 分</td></tr>
+                    <tr><td>南昌师范学院附中</td><td>307 个</td><td>215 个</td><td>92 个</td><td>70.03%</td><td>637 分</td></tr>
+                    <tr><td>南昌实验中学</td><td>355 个</td><td>249 个</td><td>106 个</td><td>70.14%</td><td>628 分</td></tr>
+                    <tr class="total-row"><td><strong>19 所公办（合计）</strong></td><td><strong>10563 个</strong></td><td><strong>7878 个</strong></td><td><strong>2685 个</strong></td><td><strong>74.58%</strong></td><td><strong>/</strong></td></tr>
+                </tbody>
+            </table>
+        `,
+        footerText: "⏰前三所均衡 3 选 1，根据中考预估分数和实际情况填报，特长生根据控制线折算择优推荐，数据全部来源 2025 年官方公布/仅供参考！"
+    };
+
+    // 2. 南昌县数据 - defaultScore 改为空字符串
+    const nanchangxianData = {
+        minScore: 200,
+        maxScore: 740,
+        defaultScore: '',  // ✅ 改为空，显示 placeholder
+        rawSchools: [
+            { name: "莲塘一中", type: "公办", score: 648, score2024: 640, score2023: 635, address: "南昌县莲塘镇澄湖西路 1566 号", classes: "零班 648；实验班 630" },
+            { name: "莲塘二中", type: "公办", score: 623, score2024: 615, score2023: 610, address: "南昌县莲塘镇斗柏路 598 号", classes: "重点班 623；特长班 600" },
+            { name: "莲塘三中", type: "公办", score: 537, score2024: 530, score2023: 525, address: "南昌县莲塘镇澄湖东路", classes: "平行班 537；艺术班 500" },
+            { name: "东新中学", type: "公办", score: 512, score2024: 505, score2023: 500, address: "南昌县东新乡", classes: "平行班 512" },
+            { name: "县中专（普高部）", type: "公办", score: 501, score2024: 495, score2023: 490, address: "南昌县莲塘镇", classes: "普高班 501" },
+            { name: "阳光博思", type: "民办", score: 360, score2024: 360, score2023: 360, address: "南昌县小蓝经济开发区", classes: "普高班 360；体教融合；职业高考班 289；江科艺考班 500；中韩国际班 360" },
+            { name: "立诚学校", type: "民办", score: 360, score2024: 360, score2023: 360, address: "南昌县向塘镇", classes: "普通高中班 360" },
+            { name: "东方明珠", type: "民办", score: 360, score2024: 360, score2023: 360, address: "南昌县莲塘镇", classes: "普通高中班 360" },
+            { name: "立迈高中", type: "民办", score: 360, score2024: 360, score2023: 360, address: "南昌县冈上镇", classes: "普通高中班 360" },
+            { name: "恒豫高中", type: "民办", score: 360, score2024: 360, score2023: 360, address: "南昌县武阳镇", classes: "普通高中班 360" },
+            { name: "聚仁高中", type: "民办", score: 360, score2024: 360, score2023: 360, address: "南昌县莲塘镇", classes: "普通高中班 360" },
+            { name: "文演高中", type: "民办", score: 360, score2024: 360, score2023: 360, address: "南昌县向塘镇", classes: "艺术高中班 360" }
+        ],
+        vocationalSchools: [
+            { name: "向远轨道", type: "中职", score: 350, score2024: 350, score2023: 350, address: "南昌县向塘镇", classes: "轨道交通专业" },
+            { name: "现代交通", type: "中职", score: 350, score2024: 350, score2023: 350, address: "南昌县小蓝开发区", classes: "交通运输专业" },
+            { name: "泛美艺校", type: "中职", score: 350, score2024: 350, score2023: 350, address: "南昌县莲塘镇", classes: "艺术传媒专业" }
+        ],
+        junhengSchoolsList: ["莲塘一中", "莲塘二中"],
+        teTypes: [
+            {value: "art", label: "美术类"},
+            {value: "music", label: "音乐类"},
+            {value: "dance", label: "舞蹈类"},
+            {value: "sports_integration", label: "体教融合类"},
+            {value: "career", label: "职业高考班"},
+            {value: "jk_art", label: "江科艺考班"},
+            {value: "korea", label: "中韩国际班"}
+        ],
+        teData: {
+            art: [
+                { name: "莲塘一中", type: "公办", score: 648, controlPercent: 0.75, principle: "专过文排" },
+                { name: "莲塘二中", type: "公办", score: 623, controlPercent: 0.75, principle: "专过文排" },
+                { name: "莲塘三中", type: "公办", score: 537, controlPercent: 0.75, principle: "专过文排" }
+            ],
+            music: [
+                { name: "莲塘一中", type: "公办", score: 648, controlPercent: 0.75, principle: "专过文排" },
+                { name: "莲塘二中", type: "公办", score: 623, controlPercent: 0.75, principle: "专过文排" },
+                { name: "莲塘三中", type: "公办", score: 537, controlPercent: 0.75, principle: "专过文排" }
+            ],
+            dance: [
+                { name: "莲塘一中", type: "公办", score: 648, controlPercent: 0.75, principle: "专过文排" }
+            ],
+            sports_integration: [
+                { name: "莲塘一中", type: "公办", score: 648, controlPercent: 0.65, extraCondition: "体育≥54 分", principle: "文过专排" },
+                { name: "阳光博思", type: "民办", score: 360, controlPercent: 1, extraCondition: "", principle: "分数达标" }
+            ],
+            career: [
+                { name: "阳光博思", type: "民办", score: 289, controlPercent: 1, extraCondition: "", principle: "分数达标" }
+            ],
+            jk_art: [
+                { name: "阳光博思", type: "民办", score: 500, controlPercent: 1, extraCondition: "", principle: "分数达标" }
+            ],
+            korea: [
+                { name: "阳光博思", type: "民办", score: 360, controlPercent: 1, extraCondition: "", principle: "分数达标" }
+            ]
+        },
+        teTableHtml: `
+            <table class="te-full-table">
+                <thead><tr><th>类别</th><th>学校名称</th><th>性质</th><th>招生计划</th><th>报名时间</th><th>测试时间</th><th>25 统招线</th><th>文化控制线</th><th>录取原则</th></tr></thead>
+                <tbody>
+                    <tr class="category-title"><td colspan="9"><strong>🎨 美术类特长</strong></td></tr>
+                    <tr><td>美术类</td><td>莲塘一中</td><td>公办</td><td>40 人</td><td>6 月 5 日 -12 日</td><td>6 月 20 日</td><td>648</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>美术类</td><td>莲塘二中</td><td>公办</td><td>35 人</td><td>6 月 5 日 -15 日</td><td>6 月 21 日</td><td>623</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>美术类</td><td>莲塘三中</td><td>公办</td><td>30 人</td><td>6 月 5 日 -15 日</td><td>6 月 21 日</td><td>537</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr class="category-title"><td colspan="9"><strong>🎵 音乐类特长</strong></td></tr>
+                    <tr><td>音乐类</td><td>莲塘一中</td><td>公办</td><td>5 人</td><td>6 月 5 日 -12 日</td><td>6 月 20 日</td><td>648</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>音乐类</td><td>莲塘二中</td><td>公办</td><td>15 人</td><td>6 月 5 日 -15 日</td><td>6 月 21 日</td><td>623</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr><td>音乐类</td><td>莲塘三中</td><td>公办</td><td>20 人</td><td>6 月 5 日 -15 日</td><td>6 月 21 日</td><td>537</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr class="category-title"><td colspan="9"><strong>💃 舞蹈类特长</strong></td></tr>
+                    <tr><td>舞蹈类</td><td>莲塘一中</td><td>公办</td><td>5 人</td><td>6 月 5 日 -12 日</td><td>6 月 20 日</td><td>648</td><td>统招线 75%</td><td>专过文排</td></tr>
+                    <tr class="category-title"><td colspan="9"><strong>🏅 体教融合类</strong></td></tr>
+                    <tr><td>体教融合</td><td>莲塘一中</td><td>公办</td><td>10 人</td><td>6 月 4 日 -12 日</td><td>6 月 20 日</td><td>648</td><td>统招 65%+ 体育≥54</td><td>文过专排</td></tr>
+                    <tr><td>体教融合</td><td>阳光博思</td><td>民办</td><td>200 人</td><td>暂定</td><td>暂定</td><td>360</td><td>统招 65%+ 体育≥54</td><td>/</td></tr>
+                    <tr class="category-title"><td colspan="9"><strong>📚 职业高考班</strong></td></tr>
+                    <tr><td>职业高考</td><td>阳光博思</td><td>民办</td><td>150 人</td><td>常年招生</td><td>免试</td><td>289</td><td>289 分</td><td>分数达标</td></tr>
+                    <tr class="category-title"><td colspan="9"><strong>🎨 江科艺考班</strong></td></tr>
+                    <tr><td>江科艺考</td><td>阳光博思</td><td>民办</td><td>100 人</td><td>常年招生</td><td>免试</td><td>500</td><td>500 分</td><td>分数达标</td></tr>
+                    <tr class="category-title"><td colspan="9"><strong>🌏 中韩国际班</strong></td></tr>
+                    <tr><td>中韩国际</td><td>阳光博思</td><td>民办</td><td>80 人</td><td>常年招生</td><td>免试</td><td>360</td><td>360 分</td><td>分数达标</td></tr>
+                </tbody>
+            </table>
+        `,
+        junhengTableHtml: `
+            <table class="junheng-full-table">
+                <thead><tr><th>学校名称</th><th>招生总计划</th><th>均衡计划</th><th>统招计划</th><th>均衡分数线</th><th>统招分数线</th></tr></thead>
+                <tbody>
+                    <tr><td>莲塘一中</td><td>1200 个</td><td>840 个</td><td>360 个</td><td>598 分</td><td>648 分</td></tr>
+                    <tr><td>莲塘二中</td><td>900 个</td><td>630 个</td><td>270 个</td><td>573 分</td><td>623 分</td></tr>
+                    <tr class="total-row"><td><strong>公办合计</strong></td><td><strong>2100 个</strong></td><td><strong>1470 个</strong></td><td><strong>630 个</strong></td><td><strong>/</strong></td><td><strong>/</strong></td></tr>
+                </tbody>
+            </table>
+        `,
+        footerText: "⏰低于 560 分建议均衡莲塘二中，高于 560 分建议莲塘一中；平行志愿按分数填报；中职志愿三选一。数据全部来源 2025 年官方公布/仅供参考！"
+    };
+
+    let currentRecommendations = [];
+    let currentJunhengList = [];
+    let originalRecommendations = [];
+    let originalJunhengList = [];
+    let currentReplaceIndex = -1;
+    let currentJunhengReplaceIndex = -1;
+    let isCustomReplaced = new Array(15).fill(false);
+    let isJunhengCustomReplaced = new Array(3).fill(false);
+
+    function getCurrentConfig() {
+        return currentArea === 'nanchang' ? nanchangData : nanchangxianData;
+    }
+
+    function initTeTypeSelect() {
+        const teTypeSelect = document.getElementById('teTypeSelect');
+        const config = getCurrentConfig();
+        teTypeSelect.innerHTML = '<option value="none">无特长</option>';
+        config.teTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type.value;
+            option.textContent = type.label;
+            teTypeSelect.appendChild(option);
+        });
+    }
+
+    // 修改：切换地区时不自动填充分数、不自动渲染
+    document.getElementById('areaSelect').addEventListener('change', function() {
+    currentArea = this.value;
+    const config = getCurrentConfig();
+    const scoreInput = document.getElementById('scoreInput');
+    scoreInput.min = config.minScore;
+    scoreInput.max = config.maxScore;
+    
+    // 重置输入框
+    nameInput.value = '';
+    scoreInput.value = '';
+    nameInput.placeholder = '考生姓名';
+    scoreInput.placeholder = '预估总分';
+    nameInput.classList.remove('input-error');
+    scoreInput.classList.remove('input-error');
+    
+    initTeTypeSelect();
+    document.getElementById('footerText').textContent = config.footerText;
+    
+    // 重置学校列表和特长推荐
+    document.getElementById('tableBody').innerHTML = 
+        '<tr><td colspan="5" style="text-align:center; padding:50px;">🎯 请选择地区并输入分数点击"确定"</td></tr>';
+    document.getElementById('teRecommendList').innerHTML = 
+        '<div class="empty-te">⚪ 请选择报考地区和特长生类型</div>';
+    document.getElementById('processBox').style.display = 'none';
+    
+    this.blur();
+});
+
+    function vibrate() {
+        if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(20);
+    }
+
+    function getFilteredSchools(rangeFilter) {
+        const config = getCurrentConfig();
+        let schools = [...config.rawSchools];
+        if (currentArea === 'nanchangxian') {
+            schools = [...schools, ...config.vocationalSchools];
+        }
+        if (rangeFilter === 'public_only') {
+            return schools.filter(s => s.type === '公办');
+        }
+        return schools;
+    }
+
+    function getJunhengEligibleSchools() {
+        const config = getCurrentConfig();
+        const junhengSet = new Set(config.junhengSchoolsList);
+        return config.rawSchools.filter(s => s.type === '公办' && junhengSet.has(s.name)).sort((a,b) => a.score - b.score);
+    }
+
+    function getJunhengSchools(userScore, juniorType) {
+        if (juniorType !== 'public') return [];
+        const config = getCurrentConfig();
+        if (currentArea === 'nanchang') {
+            if (userScore <= 450) {
+                const eligible = getJunhengEligibleSchools();
+                return eligible.slice(0, 3).sort((a,b) => b.score - a.score);
+            }
+            let eligibleSchools = getJunhengEligibleSchools();
+            let targetCount = 3;
+            let lowerBound = userScore + 30;
+            let upperBound = userScore + 50;
+            let attempts = 0;
+            let candidates = [];
+            while (candidates.length < targetCount && attempts < 60 && lowerBound <= 800) {
+                candidates = eligibleSchools.filter(s => s.score >= lowerBound && s.score <= upperBound);
+                if (candidates.length >= targetCount) break;
+                lowerBound += 5; upperBound += 5; attempts++;
+            }
+            if (candidates.length < targetCount) {
+                let usedNames = new Set(candidates.map(c => c.name));
+                let remaining = eligibleSchools.filter(s => !usedNames.has(s.name)).sort((a,b) => b.score - a.score);
+                candidates = [...candidates, ...remaining.slice(0, targetCount - candidates.length)];
+            }
+            return candidates.slice(0, 3).sort((a,b) => b.score - a.score);
+        } else {
+            return userScore < 560 
+                ? config.rawSchools.filter(x => x.name === '莲塘二中') 
+                : config.rawSchools.filter(x => x.name === '莲塘一中');
+        }
+    }
+
+    function getCWBList(userScore, rangeFilter) {
+        const config = getCurrentConfig();
+        let allSchools = getFilteredSchools(rangeFilter);
+        if (currentArea === 'nanchang') {
+            let schoolsDesc = [...allSchools].sort((a,b) => b.score - a.score);
+            let schoolsAsc = [...allSchools].sort((a,b) => a.score - b.score);
+            let targetCount = 15;
+            let startPoint = userScore + 30;
+            let selectedSchools = [];
+            let selectedNames = new Set();
+            let lowerSchools = schoolsDesc.filter(s => s.score <= startPoint);
+            for (let school of lowerSchools) {
+                if (selectedSchools.length >= targetCount) break;
+                if (!selectedNames.has(school.name)) { 
+                    selectedSchools.push(school); 
+                    selectedNames.add(school.name); 
+                }
+            }
+            if (selectedSchools.length < targetCount) {
+                let upperSchools = schoolsAsc.filter(s => s.score > startPoint);
+                for (let school of upperSchools) {
+                    if (selectedSchools.length >= targetCount) break;
+                    if (!selectedNames.has(school.name)) { 
+                        selectedSchools.push(school); 
+                        selectedNames.add(school.name); 
+                    }
+                }
+            }
+            if (selectedSchools.length < targetCount) {
+                for (let school of schoolsDesc) {
+                    if (selectedSchools.length >= targetCount) break;
+                    if (!selectedNames.has(school.name)) selectedSchools.push(school);
+                }
+            }
+            selectedSchools.sort((a,b) => b.score - a.score);
+            let result = [];
+            for (let i = 0; i < selectedSchools.length; i++) {
+                let type = i < 4 ? '冲' : (i < 11 ? '稳' : '保');
+                result.push({ school: selectedSchools[i], type: type });
+            }
+            return result;
+        } else {
+            let start = userScore >= 520.5 ? 0 : userScore >= 500 ? 1 : 2;
+            let selectedSchools = [];
+            for (let i = start; i < allSchools.length && selectedSchools.length < 9; i++) {
+                if (!selectedSchools.some(x => x.name === allSchools[i].name)) {
+                    selectedSchools.push(allSchools[i]);
+                }
+            }
+            if (userScore <= 360) {
+                selectedSchools = selectedSchools.slice(0,9);
+                selectedSchools.push(...config.vocationalSchools);
+            }
+            selectedSchools.sort((a,b) => b.score - a.score);
+            let result = [];
+            for (let i = 0; i < selectedSchools.length; i++) {
+                let type = selectedSchools[i].type === '中职' ? '中职' : '平行';
+                result.push({ school: selectedSchools[i], type: type });
+            }
+            return result;
+        }
+    }
+
+    function calcControlScore(originalScore, percent) {
+        const config = getCurrentConfig();
+        let calcScore = Math.ceil(originalScore * percent);
+        return Math.max(calcScore, config.minScore);
+    }
+
+    function getTeRecommendations(userScore, teType) {
+        if (teType === 'none') return [];
+        const config = getCurrentConfig();
+        const schoolsList = config.teData[teType] || [];
+        const categoryMap = {
+            'art': '美术类', 'music': '音乐类', 'dance': '舞蹈类',
+            'sports_integration': '体教融合', 'career': '职业高考班',
+            'jk_art': '江科艺考班', 'korea': '中韩国际班',
+            'academic': '学科类 (强基)', 'humanities': '人文类'
+        };
+        let categoryName = categoryMap[teType] || '特长类';
+        let recommendations = [];
+        for (let school of schoolsList) {
+            let requiredScore = calcControlScore(school.score, school.controlPercent);
+            if (userScore >= requiredScore) {
+                let extraInfo = school.extraCondition ? ` | ${school.extraCondition}` : "";
+                recommendations.push({
+                    name: school.name, type: school.type, originalScore: school.score,
+                    requiredScore: requiredScore, controlPercent: `${Math.round(school.controlPercent * 100)}%`,
+                    category: categoryName, principle: school.principle, extraCondition: extraInfo
+                });
+            }
+        }
+        recommendations.sort((a,b) => b.requiredScore - a.requiredScore);
+        if (recommendations.length > 5) return recommendations.slice(0, 5);
+        return recommendations;
+    }
+
+    function getTypeBadgeHtml(type) {
+        if (type === '公办') return '<span class="type-badge type-badge-public">公办</span>';
+        if (type === '民办') return '<span class="type-badge type-badge-private">民办</span>';
+        if (type === '中职') return '<span class="type-badge type-badge-vocational">中职</span>';
+        return '';
+    }
+
+    function getTagHtml(typeLabel, isCustom = false) {
+        if (isCustom) return '<span class="志愿标签 tag-custom">自定义</span>';
+        if (typeLabel === '均衡') return '<span class="志愿标签 tag-junheng">' + (currentArea === 'nanchang' ? '均衡 3 选 1' : '均衡') + '</span>';
+        if (typeLabel === '冲') return '<span class="志愿标签 tag-chong">冲</span>';
+        if (typeLabel === '稳') return '<span class="志愿标签 tag-wen">稳</span>';
+        if (typeLabel === '保') return '<span class="志愿标签 tag-bao">保</span>';
+        if (typeLabel === '平行') return '<span class="志愿标签 tag-parallel">平行</span>';
+        if (typeLabel === '中职') return '<span class="志愿标签 tag-vocational">中职 (3 选 1)</span>';
+        return '';
+    }
+
+    function getSchoolFullInfo(schoolName) {
+        const config = getCurrentConfig();
+        const school = config.rawSchools.find(s => s.name === schoolName) 
+            || (currentArea === 'nanchangxian' ? config.vocationalSchools.find(s => s.name === schoolName) : null);
+        if (school) {
+            return {
+                address: school.address || "暂无数据", classes: school.classes || "暂无数据",
+                score2023: school.score2023 || "暂无", score2024: school.score2024 || "暂无",
+                score2025: school.score, type: school.type, score: school.score
+            };
+        }
+        return { address: "暂无数据", classes: "暂无数据", score2023: "暂无", score2024: "暂无", score2025: "暂无", type: "公办", score: 0 };
+    }
+
+    function generateChartHTML(score2023, score2024, score2025) {
+        const maxScore = Math.max(score2023 === "暂无" ? 0 : score2023, score2024 === "暂无" ? 0 : score2024, score2025);
+        const minScore = Math.min(score2023 === "暂无" ? 999 : score2023, score2024 === "暂无" ? 999 : score2024, score2025);
+        const range = maxScore - minScore;
+        const getHeight = (score) => {
+            if (score === "暂无" || score === null) return 20;
+            if (range === 0) return 60;
+            return 20 + ((score - minScore) / range) * 80;
+        };
+        const h2023 = getHeight(score2023), h2024 = getHeight(score2024), h2025 = getHeight(score2025);
+        return `<div class="chart-container"><div class="chart-bars">
+            <div class="bar-item"><div class="bar-value">${score2023 === "暂无" ? "暂无" : score2023 + "分"}</div><div class="bar" style="height: ${h2023}px; width: 50px;"></div><div class="bar-label">2023 年</div></div>
+            <div class="bar-item"><div class="bar-value">${score2024 === "暂无" ? "暂无" : score2024 + "分"}</div><div class="bar" style="height: ${h2024}px; width: 50px;"></div><div class="bar-label">2024 年</div></div>
+            <div class="bar-item"><div class="bar-value">${score2025}分</div><div class="bar" style="height: ${h2025}px; width: 50px; background: linear-gradient(180deg, #e67e22, #f39c12);"></div><div class="bar-label">2025 年</div></div>
+        </div><div class="trend-line"><div class="trend-point">📈 近三年走势</div></div></div>`;
+    }
+
+    function showSchoolDetail(schoolName) {
+        vibrate();
+        const info = getSchoolFullInfo(schoolName);
+        const chartHTML = generateChartHTML(info.score2023, info.score2024, info.score2025);
+        document.getElementById('schoolModalTitle').innerHTML = `🏫 ${schoolName}`;
+        document.getElementById('schoolModalBody').innerHTML = `<div class="school-detail"><p><strong>📍 学校地址：</strong><br>${info.address}</p><p><strong>✨ 特色班型：</strong><br>${info.classes}</p><p><strong>📊 近三年分数线趋势：</strong></p>${chartHTML}<p style="white-space: nowrap;"><strong>📱咨询电话：</strong><span style="color:#1e3c72; cursor:pointer;" id="modalPhone">15270973037</span></p></div>`;
+        document.getElementById('schoolModal').style.display = 'flex';
+        const modalPhone = document.getElementById('modalPhone');
+        if (modalPhone) modalPhone.onclick = () => window.location.href = 'tel:15270973037';
+    }
+
+    function showScoreDetail(schoolName) {
+        vibrate();
+        const info = getSchoolFullInfo(schoolName);
+        const getTrendIcon = (year1, year2) => {
+            if (year1 === "暂无" || year2 === "暂无") return "➡️ 持平";
+            if (year2 > year1) return `📈 上涨 ${year2 - year1}分`;
+            if (year2 < year1) return `📉 下降 ${year1 - year2}分`;
+            return "➡️ 持平";
+        };
+        const trend24 = getTrendIcon(info.score2023, info.score2024);
+        const trend25 = getTrendIcon(info.score2024, info.score2025);
+        document.getElementById('scoreModalTitle').innerHTML = `📊 ${schoolName} · 分数线对比`;
+        document.getElementById('scoreModalBody').innerHTML = `<div class="school-detail"><p style="text-align:center; font-size:1.1rem; font-weight:700; color:#1e3c72;">近三年分数线走势</p><table style="width:100%; border-collapse:collapse; text-align:center;"><tr style="background:#f0f4f9;"><th style="padding:8px;">年份</th><th style="padding:8px;">分数线</th><th style="padding:8px;">变化趋势</th></tr><tr><td style="padding:8px;">2023 年</td><td style="font-weight:700;">${info.score2023}分</td><td>—</td></tr><tr><td style="padding:8px;">2024 年</td><td style="font-weight:700;">${info.score2024}分</td><td>${trend24}</td></tr><tr><td style="padding:8px;">2025 年</td><td style="font-weight:700; color:#c44536;">${info.score2025}分</td><td>${trend25}</td></tr></table></div>`;
+        document.getElementById('scoreModal').style.display = 'flex';
+    }
+
+    function renderTableWithData(cwbList, junhengList, juniorType) {
+        let allRows = [];
+        if (juniorType === 'private') {
+            allRows.push({ isPlaceholder: true, message: '⚠️ 民办初中无均衡生资格' });
+        } else if (junhengList.length === 0) {
+            allRows.push({ isPlaceholder: true, message: '📭 暂无符合条件的均衡学校' });
+        } else {
+            for (let i = 0; i < junhengList.length; i++) {
+                allRows.push({ school: junhengList[i], type: '均衡', isJunheng: true, junhengIndex: i });
+            }
+        }
+        for (let i = 0; i < cwbList.length; i++) {
+            allRows.push({ school: cwbList[i].school, type: cwbList[i].type, isJunheng: false, isCustom: isCustomReplaced[i], index: i });
+        }
+        const tbody = document.getElementById('tableBody');
+        if (allRows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px;">🎯 暂无推荐学校</td></tr>';
+        } else {
+            let html = '', serial = 1;
+            for (let item of allRows) {
+                if (item.isPlaceholder) {
+                    html += `<tr style="background:#fff9e6;"><td colspan="5" style="text-align:center; padding:8px; color:#b85c00;">${item.message}</td></tr>`;
+                } else if (item.isJunheng) {
+                    const schoolName = item.school.name, schoolScore = item.school.score, isCustom = isJunhengCustomReplaced[item.junhengIndex];
+                    html += `<tr><td><span class="serial-number" data-junheng-index="${item.junhengIndex}">${serial++}</span></td><td class="school-name" data-name="${schoolName}">${schoolName}</td><td>${getTypeBadgeHtml(item.school.type)}</td><td><span class="score-click" data-name="${schoolName}">${schoolScore}分</span></td><td>${getTagHtml('均衡', isCustom)}</td></tr>`;
+                } else {
+                    const schoolName = item.school.name, schoolScore = item.school.score;
+                    html += `<tr><td><span class="serial-number" data-index="${item.index}">${serial++}</span></td><td class="school-name" data-name="${schoolName}">${schoolName}</td><td>${getTypeBadgeHtml(item.school.type)}</td><td><span class="score-click" data-name="${schoolName}">${schoolScore}分</span></td><td>${getTagHtml(item.type, item.isCustom)}</td></tr>`;
+                }
+            }
+            tbody.innerHTML = html;
+            document.querySelectorAll('.school-name').forEach(el => el.addEventListener('click', (e) => { e.stopPropagation(); showSchoolDetail(el.getAttribute('data-name')); }));
+            document.querySelectorAll('.score-click').forEach(el => el.addEventListener('click', (e) => { e.stopPropagation(); showScoreDetail(el.getAttribute('data-name')); }));
+            document.querySelectorAll('.serial-number[data-index]').forEach(el => el.addEventListener('click', (e) => { e.stopPropagation(); vibrate(); currentReplaceIndex = parseInt(el.getAttribute('data-index')); showSchoolSelector(); }));
+            document.querySelectorAll('.serial-number[data-junheng-index]').forEach(el => el.addEventListener('click', (e) => { e.stopPropagation(); vibrate(); currentJunhengReplaceIndex = parseInt(el.getAttribute('data-junheng-index')); showJunhengSelector(); }));
+        }
+    }
+
+    function showSchoolSelector() {
+        const container = document.getElementById('schoolListContainer');
+        const searchInput = document.getElementById('schoolSearchInput');
+        const config = getCurrentConfig();
+        let allSelectableSchools = [...config.rawSchools];
+        if (currentArea === 'nanchangxian') {
+            allSelectableSchools = [...allSelectableSchools, ...config.vocationalSchools];
+        }
+        function renderSchoolList(filterText = '') {
+            let filteredSchools = [...allSelectableSchools];
+            if (filterText) filteredSchools = filteredSchools.filter(s => s.name.includes(filterText));
+            const existingNames = new Set(currentRecommendations.map(r => r.school.name));
+            let html = '';
+            for (let school of filteredSchools) {
+                const isDisabled = existingNames.has(school.name);
+                html += `<div class="school-item" data-name="${school.name}" style="${isDisabled ? 'opacity:0.5;' : ''}"><div class="school-name-select">${school.name}</div><div class="school-score-select">${school.score}分</div><div class="school-class-select">${school.classes.substring(0, 20)}${school.classes.length > 20 ? '...' : ''}</div></div>`;
+            }
+            container.innerHTML = html;
+            document.querySelectorAll('.school-item').forEach(el => {
+                const name = el.getAttribute('data-name');
+                if (!existingNames.has(name)) {
+                    el.addEventListener('click', (e) => { 
+                        e.stopPropagation(); vibrate(); const newSchool = allSelectableSchools.find(s => s.name === name); if (newSchool && currentReplaceIndex >= 0) { currentRecommendations[currentReplaceIndex].school = newSchool; currentRecommendations[currentReplaceIndex].type = newSchool.type === '中职' ? '中职' : (currentArea === 'nanchang' ? (currentReplaceIndex < 4 ? '冲' : (currentReplaceIndex < 11 ? '稳' : '保')) : '平行'); isCustomReplaced[currentReplaceIndex] = true; const juniorType = document.getElementById('schoolTypeSelect').value; const userScore = parseFloat(document.getElementById('scoreInput').value); const newJunheng = getJunhengSchools(userScore, juniorType); renderTableWithData(currentRecommendations, newJunheng, juniorType); } document.getElementById('schoolSelectorModal').style.display = 'none'; 
+                    });
+                }
+            });
+        }
+        searchInput.value = '';
+        renderSchoolList('');
+        searchInput.oninput = (e) => renderSchoolList(e.target.value);
+        document.getElementById('resetRowBtn').onclick = () => { 
+            if (currentReplaceIndex >= 0 && originalRecommendations[currentReplaceIndex]) { 
+                currentRecommendations[currentReplaceIndex].school = originalRecommendations[currentReplaceIndex].school; 
+                currentRecommendations[currentReplaceIndex].type = originalRecommendations[currentReplaceIndex].type;
+                isCustomReplaced[currentReplaceIndex] = false; 
+                const juniorType = document.getElementById('schoolTypeSelect').value; 
+                const userScore = parseFloat(document.getElementById('scoreInput').value); 
+                const newJunheng = getJunhengSchools(userScore, juniorType); 
+                renderTableWithData(currentRecommendations, newJunheng, juniorType); 
+                document.getElementById('schoolSelectorModal').style.display = 'none'; 
+            } 
+        };
+        document.getElementById('schoolSelectorModal').style.display = 'flex';
+    }
+
+    function showJunhengSelector() {
+        const container = document.getElementById('junhengListContainer');
+        const searchInput = document.getElementById('junhengSearchInput');
+        const config = getCurrentConfig();
+        const junhengSet = new Set(config.junhengSchoolsList);
+        const junhengSchoolsData = config.rawSchools.filter(s => s.type === '公办' && junhengSet.has(s.name));
+        function renderSchoolList(filterText = '') {
+            let filteredSchools = [...junhengSchoolsData];
+            if (filterText) filteredSchools = filteredSchools.filter(s => s.name.includes(filterText));
+            const currentJunhengNames = new Set(currentJunhengList.map(s => s.name));
+            let html = '';
+            for (let school of filteredSchools) {
+                const isDisabled = currentJunhengNames.has(school.name) && currentJunhengList[currentJunhengReplaceIndex]?.name !== school.name;
+                html += `<div class="school-item" data-name="${school.name}" style="${isDisabled ? 'opacity:0.5;' : ''}"><div class="school-name-select">${school.name}</div><div class="school-score-select">${school.score}分</div><div class="school-class-select">${school.classes.substring(0, 20)}${school.classes.length > 20 ? '...' : ''}</div></div>`;
+            }
+            container.innerHTML = html;
+            document.querySelectorAll('#junhengListContainer .school-item').forEach(el => {
+                const name = el.getAttribute('data-name');
+                const currentNames = new Set(currentJunhengList.map(s => s.name));
+                if (!currentNames.has(name) || currentJunhengList[currentJunhengReplaceIndex]?.name === name) {
+                    el.addEventListener('click', (e) => { 
+                        e.stopPropagation(); vibrate(); const newSchool = junhengSchoolsData.find(s => s.name === name); if (newSchool && currentJunhengReplaceIndex >= 0) { currentJunhengList[currentJunhengReplaceIndex] = newSchool; isJunhengCustomReplaced[currentJunhengReplaceIndex] = true; const juniorType = document.getElementById('schoolTypeSelect').value; const userScore = parseFloat(document.getElementById('scoreInput').value); renderTableWithData(currentRecommendations, currentJunhengList, juniorType); } document.getElementById('junhengSelectorModal').style.display = 'none'; 
+                    });
+                }
+            });
+        }
+        searchInput.value = '';
+        renderSchoolList('');
+        searchInput.oninput = (e) => renderSchoolList(e.target.value);
+        document.getElementById('resetJunhengRowBtn').onclick = () => { 
+            if (currentJunhengReplaceIndex >= 0 && originalJunhengList[currentJunhengReplaceIndex]) { 
+                currentJunhengList[currentJunhengReplaceIndex] = originalJunhengList[currentJunhengReplaceIndex]; 
+                isJunhengCustomReplaced[currentJunhengReplaceIndex] = false; 
+                const juniorType = document.getElementById('schoolTypeSelect').value; 
+                const userScore = parseFloat(document.getElementById('scoreInput').value); 
+                renderTableWithData(currentRecommendations, currentJunhengList, juniorType); 
+                document.getElementById('junhengSelectorModal').style.display = 'none'; 
+            } 
+        };
+        document.getElementById('junhengSelectorModal').style.display = 'flex';
+    }
+
+    document.getElementById('showTeBtn').addEventListener('click', function() {
+        const config = getCurrentConfig();
+        document.getElementById('teModalTitle').textContent = currentArea === 'nanchang' ? '🎨 南昌市普通高中特长班信息表' : '🎨 南昌县普通高中特长班信息表';
+        document.getElementById('teModalBody').innerHTML = config.teTableHtml;
+        document.getElementById('teModal').style.display = 'flex';
+    });
+
+    document.getElementById('showJunhengBtn').addEventListener('click', function() {
+        const config = getCurrentConfig();
+        document.getElementById('junhengModalTitle').textContent = currentArea === 'nanchang' ? '⚖️ 2025 年南昌城区高中均衡招生计划' : '⚖️ 2025 年南昌县高中均衡招生计划';
+        document.getElementById('junhengModalBody').innerHTML = config.junhengTableHtml;
+        document.getElementById('junhengModal').style.display = 'flex';
+    });
+
+    function renderFull() {
+        let rawScore = document.getElementById('scoreInput').value;
+        let score = parseFloat(rawScore);
+        const config = getCurrentConfig();
+        if (isNaN(score) || score < config.minScore || score > config.maxScore) { 
+            alert(`📢 请输入有效分数，范围在 ${config.minScore} ~ ${config.maxScore} 之间`); 
+            return; 
+        }
+        const juniorType = document.getElementById('schoolTypeSelect').value;
+        const highSchoolFilter = document.getElementById('highSchoolFilter').value;
+        const teType = document.getElementById('teTypeSelect').value;
+        let junhengList = getJunhengSchools(score, juniorType);
+        let cwbList = getCWBList(score, highSchoolFilter);
+        currentRecommendations = cwbList;
+        currentJunhengList = junhengList;
+        originalRecommendations = JSON.parse(JSON.stringify(cwbList));
+        originalJunhengList = JSON.parse(JSON.stringify(junhengList));
+        isCustomReplaced.fill(false);
+        isJunhengCustomReplaced.fill(false);
+        renderTableWithData(cwbList, junhengList, juniorType);
+        let teList = getTeRecommendations(score, teType);
+        const teContainer = document.getElementById('teRecommendList');
+        const processBox = document.getElementById('processBox');
+        if (teType === 'none') { 
+            teContainer.innerHTML = '<div class="empty-te">❌未选择特长生类型<br>请在上方选择特长生类别</div>'; 
+            processBox.style.display = 'none'; 
+        } else if (teList.length === 0) { 
+            teContainer.innerHTML = '<div class="empty-te">😢 没有符合条件的特长生学校<br>可尝试选择其他特长类型</div>'; 
+            processBox.style.display = 'none'; 
+        } else { 
+            let teHtml = ''; 
+            for (let te of teList) { 
+                teHtml += `<div class="te-card"><div class="te-name">${te.name}</div><div class="te-info"><span class="te-tag">${te.category}</span><span class="te-tag">统招线 ${te.originalScore}分</span><span class="te-feature">📌 录取原则：${te.principle}</span></div><div class="te-score">✅ 文化控制线：${te.requiredScore}分 (统招线×${te.controlPercent})${te.extraCondition || ""}<br>📊 你的分数 ${score}分 ≥ ${te.requiredScore}分，符合报考条件</div></div>`; 
+            } 
+            teContainer.innerHTML = teHtml; 
+            processBox.style.display = 'block'; 
+        }
+    }
+
+    function enforceScoreRange() { 
+        const config = getCurrentConfig();
+        let input = document.getElementById('scoreInput'); 
+        let val = parseInt(input.value); 
+        if (!isNaN(val)) { 
+            if (val < config.minScore) input.value = config.minScore; 
+            if (val > config.maxScore) input.value = config.maxScore; 
+        } 
+    }
+
+    const schoolModal = document.getElementById('schoolModal');
+    const scoreModal = document.getElementById('scoreModal');
+    const teModal = document.getElementById('teModal');
+    const junhengModal = document.getElementById('junhengModal');
+    const schoolSelectorModal = document.getElementById('schoolSelectorModal');
+    const junhengSelectorModal = document.getElementById('junhengSelectorModal');
+    const phoneBtn = document.getElementById('phoneBtn');
+
+    document.querySelectorAll('.modal:not(.school-selector-modal)').forEach(modal => {
+        modal.onclick = function(){ this.style.display = "none"; };
+    });
+
+    schoolSelectorModal.addEventListener('click', function(e) {
+        if (e.target === this) { this.style.display = 'none'; }
+    });
+    junhengSelectorModal.addEventListener('click', function(e) {
+        if (e.target === this) { this.style.display = 'none'; }
+    });
+
+    phoneBtn.onclick = () => window.location.href = 'tel:15270973037';
+
+    document.getElementById('schoolTypeSelect').addEventListener('change', function(){ enforceScoreRange(); renderFull(); this.blur(); });
+    document.getElementById('highSchoolFilter').addEventListener('change', function(){ enforceScoreRange(); renderFull(); this.blur(); });
+    document.getElementById('teTypeSelect').addEventListener('change', function(){ enforceScoreRange(); renderFull(); this.blur(); });
+
+    document.getElementById('scoreInput').onblur = enforceScoreRange;
+    document.getElementById('scoreInput').addEventListener('focus', function() { this.select(); });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initTeTypeSelect();
+        // 初始加载时不设置默认值，保持 placeholder 显示
+    });
+
+    // ===================== ✅ 新增：手机号弹窗 + 去重 + 加载逻辑 =====================
+    const phoneModal = document.getElementById('phoneModal');
+    const phoneInput = document.getElementById('phoneInput');
+    const phoneLoginBtn = document.getElementById('phoneLoginBtn');
+    const STORAGE_KEY = 'zhongkao_logged_users';
+
+    // 获取已登录的用户组合
+    function getLoggedUsers() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+        } catch {
+            return {};
+        }
+    }
+
+    // 保存已登录的用户组合
+    function saveLoggedUser(name, score) {
+        const users = getLoggedUsers();
+        users[`${name}:${score}`] = Date.now();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+    }
+
+    // 检查是否已登录过该组合
+    function isUserLogged(name, score) {
+        const users = getLoggedUsers();
+        return !!users[`${name}:${score}`];
+    }
+
+    // 显示手机号弹窗
+    function showPhoneModal(callback) {
+        phoneModal.style.display = 'flex';
+        phoneInput.value = '';
+        phoneInput.focus();
+        
+        // 点击外部关闭（不执行回调，即不推荐）
+        phoneModal.onclick = (e) => {
+            if (e.target === phoneModal) {
+                phoneModal.style.display = 'none';
+            }
+        };
+        
+        // 登录按钮点击
+        phoneLoginBtn.onclick = () => {
+            const phone = phoneInput.value.trim();
+            if (!/^1[3-9]\d{9}$/.test(phone)) {
+                phoneInput.placeholder = '请输入正确手机号';
+                phoneInput.classList.add('input-error');
+                setTimeout(() => phoneInput.classList.remove('input-error'), 400);
+                return;
+            }
+            phoneModal.style.display = 'none';
+            if (typeof callback === 'function') callback();
+        };
+        
+        // 回车登录
+        phoneInput.onkeypress = (e) => {
+            if (e.key === 'Enter') phoneLoginBtn.click();
+        };
+    }
+
+    // 显示加载状态并延迟执行
+    function showLoadingThenExecute(callback, delay = 3000) {
+        document.getElementById('tableBody').innerHTML = 
+            '<tr><td colspan="5"><div class="loading-tip"><span class="spinner"></span>正在智能推荐志愿学校，请稍后…</div></td></tr>';
+        document.getElementById('teRecommendList').innerHTML = 
+    '<div class="empty-te"><span class="rotating">⏳</span>加载中...</div>';
+        document.getElementById('processBox').style.display = 'none';
+        
+        setTimeout(() => {
+            if (typeof callback === 'function') callback();
+        }, delay);
+    }
+
+    // 重写确定按钮逻辑：增加手机号弹窗 + 去重 + 加载
+generateBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    let valid = true;
+    if (!nameInput.value.trim()) { showError(nameInput, '考生姓名'); valid = false; }
+    if (!scoreInput.value.trim()) { showError(scoreInput, '预估分数'); valid = false; }
+    
+    if (!valid) return;
+
+    const name = nameInput.value.trim();
+    const score = scoreInput.value.trim();
+    
+    nameInput.placeholder = '考生姓名';
+    scoreInput.placeholder = '预估总分';
+    nameInput.classList.remove('input-error');
+    scoreInput.classList.remove('input-error');
+    
+    if (isUserLogged(name, score)) {
+        showLoadingThenExecute(renderFull);
+    } else {
+        showPhoneModal((phone) => {
+    saveLoggedUser(name, score);
+    uploadToTencentCloud(phone, name, score, areaSelect.value);
+    showLoadingThenExecute(renderFull);
+});
+    }
+});
+    // ===================== 逻辑结束 =====================
+</script>
+</body>
+</html>

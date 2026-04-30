@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>轻舟 · 网盘导航</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-1: #e0f2fe; --bg-2: #f3e8ff; --bg-3: #fce7f3; --bg-4: #dbeafe;
+            --card-bg: rgba(255, 255, 255, 0.72);
+            --card-border: rgba(255, 255, 255, 0.85);
+            --text-primary: #1e293b; --text-secondary: #475569; --accent: #0ea5e9;
+            --line-color: #475569; --line-opacity: 0.35;
+            --card-hover-border: rgba(14, 165, 233, 0.5);
+            --card-glow: rgba(14, 165, 233, 0.25);
+            --text-muted: #94a3b8;
+            --radius-lg: 20px; --radius-xl: 26px; --radius-full: 9999px;
+            --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 33%, var(--bg-3) 66%, var(--bg-4) 100%);
+            background-size: 400% 400%;
+            animation: gradientFlow 18s ease infinite;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            padding: 32px 20px 24px;
+            color: var(--text-primary);
+            line-height: 1.45;
+            position: relative;
+            overflow-x: hidden;
+            transition: background 0.8s ease;
+        }
+
+        /* 动态背景容器 */
+        .bg-animated {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 0; overflow: hidden;
+        }
+
+        /* 流动曲线动画 */
+        .bg-curve {
+            position: absolute; fill: none; stroke: var(--line-color);
+            stroke-linecap: round; opacity: var(--line-opacity);
+            transition: stroke 0.8s ease, opacity 0.8s ease;
+        }
+        .curve-1 { d: path("M-100,250 C150,100 350,400 600,200 S900,500 1300,300"); stroke-width: 1.2; animation: flowLine1 25s ease-in-out infinite; }
+        .curve-2 { d: path("M100,900 Q200,600 450,450 T850,150 T1200,400"); stroke-width: 0.8; animation: flowLine2 30s ease-in-out infinite reverse; }
+        .curve-3 { d: path("M-50,600 C200,550 300,800 550,650 S800,400 1050,550"); stroke-width: 1; animation: flowLine3 28s ease-in-out infinite; }
+        .curve-4 { d: path("M400,-50 Q300,150 500,300 T750,100"); stroke-width: 0.6; animation: flowLine4 32s ease-in-out infinite reverse; }
+        .curve-5 { d: path("M800,900 Q750,600 950,450 T1150,600"); stroke-width: 1.5; animation: flowLine5 26s ease-in-out infinite; }
+
+        @keyframes flowLine1 { 0%,100%{transform:translateX(0) translateY(0)} 50%{transform:translateX(-30px) translateY(15px)} }
+        @keyframes flowLine2 { 0%,100%{transform:translateX(0) translateY(0)} 50%{transform:translateX(25px) translateY(-20px)} }
+        @keyframes flowLine3 { 0%,100%{transform:translateX(0) translateY(0)} 50%{transform:translateX(-20px) translateY(10px)} }
+        @keyframes flowLine4 { 0%,100%{transform:translateX(0) translateY(0)} 50%{transform:translateX(30px) translateY(-15px)} }
+        @keyframes flowLine5 { 0%,100%{transform:translateX(0) translateY(0)} 50%{transform:translateX(-15px) translateY(20px)} }
+
+        /* 浮动光晕 */
+        .bg-orb {
+            position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.5;
+            animation: orbFloat 20s ease-in-out infinite;
+        }
+        .orb-1 { top: 8%; left: 5%; width: 350px; height: 350px; background: var(--accent); opacity: 0.15; animation-delay: 0s; }
+        .orb-2 { bottom: 12%; right: 8%; width: 400px; height: 400px; background: #a855f7; opacity: 0.12; animation-delay: -8s; }
+        .orb-3 { top: 45%; left: 60%; width: 280px; height: 280px; background: #ec4899; opacity: 0.1; animation-delay: -15s; }
+        @keyframes orbFloat { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-40px) rotate(10deg)} }
+
+        /* 浮动圆点动画 */
+        .bg-dot {
+            position: absolute; fill: var(--line-color);
+            opacity: calc(var(--line-opacity) * 0.9);
+            transition: fill 0.8s ease, opacity 0.8s ease;
+        }
+        .dot-1 { animation: dotFloat1 8s ease-in-out infinite; }
+        .dot-2 { animation: dotFloat2 10s ease-in-out infinite reverse; }
+        .dot-3 { animation: dotFloat3 9s ease-in-out infinite; }
+        .dot-4 { animation: dotFloat4 11s ease-in-out infinite reverse; }
+        .dot-5 { animation: dotFloat5 7s ease-in-out infinite; }
+        @keyframes dotFloat1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(8px,-5px) scale(1.3)} }
+        @keyframes dotFloat2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-6px,10px) scale(0.8)} }
+        @keyframes dotFloat3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(12px,3px) scale(1.5)} }
+        @keyframes dotFloat4 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-10px,-8px) scale(0.9)} }
+        @keyframes dotFloat5 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(5px,12px) scale(1.2)} }
+
+        /* 标记脉冲动画 */
+        .bg-mark {
+            position: absolute; stroke: var(--line-color); fill: none;
+            opacity: calc(var(--line-opacity) * 0.85);
+            transition: stroke 0.8s ease, opacity 0.8s ease;
+            animation: markPulse 6s ease-in-out infinite;
+        }
+        .mark-1 { animation-delay: 0s; } .mark-2 { animation-delay: -2s; } .mark-3 { animation-delay: -4s; }
+        @keyframes markPulse { 0%,100%{transform:scale(1); opacity:calc(var(--line-opacity)*0.85)} 50%{transform:scale(1.4); opacity:calc(var(--line-opacity)*1.1)} }
+
+        /* 字符呼吸动画 */
+        .bg-char {
+            position: absolute; font-family: sans-serif; fill: var(--line-color);
+            opacity: calc(var(--line-opacity) * 0.6);
+            transition: fill 0.8s ease, opacity 0.8s ease;
+            animation: charBreath 5s ease-in-out infinite;
+        }
+        .char-1 { animation-delay: 0s; font-size: 14px; }
+        .char-2 { animation-delay: -1.5s; font-size: 10px; }
+        .char-3 { animation-delay: -3s; font-size: 12px; }
+        .char-4 { animation-delay: -2s; font-size: 16px; }
+        .char-5 { animation-delay: -4s; font-size: 8px; }
+        @keyframes charBreath { 0%,100%{transform:translateY(0) scale(1); opacity:calc(var(--line-opacity)*0.6)} 50%{transform:translateY(-6px) scale(1.15); opacity:calc(var(--line-opacity)*0.9)} }
+
+        @keyframes gradientFlow { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+        .main-container { max-width: 1300px; margin: 0 auto; position: relative; z-index: 1; }
+
+        /* 时间日期 */
+        .time-date { text-align: center; margin-bottom: 32px; padding: 10px 0; }
+        .datetime-group { display: flex; align-items: center; justify-content: center; gap: 32px; flex-wrap: wrap; }
+        .live-clock {
+            font-size: 3.8rem; font-weight: 800; letter-spacing: -3px;
+            background: linear-gradient(135deg, var(--accent), #a855f7, #ec4899);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; line-height: 1;
+        }
+        .live-date {
+            font-size: 1.55rem; font-weight: 600; color: var(--text-secondary);
+            letter-spacing: 0.5px; background: transparent; padding: 0; border: none;
+        }
+
+        /* 🔍 极简百度搜索框 */
+        .search-wrapper {
+            max-width: 580px; margin: 0 auto 28px;
+            background: var(--card-bg); backdrop-filter: blur(24px);
+            border-radius: var(--radius-full); padding: 9px 28px 9px 28px;
+            display: flex; align-items: center; border: 1px solid var(--card-border);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08); transition: all var(--transition-normal);
+        }
+        .search-wrapper:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 12px 40px rgba(14,165,233,0.2), 0 0 0 4px rgba(14,165,233,0.1);
+            transform: translateY(-2px);
+        }
+        .search-wrapper i {
+            color: var(--text-muted); font-size: 1.25rem; margin-right: 14px;
+            transition: color var(--transition-normal);
+        }
+        .search-wrapper:focus-within i { color: #4e6ef2; }
+        
+        #searchInput {
+            flex: 1; background: transparent; border: none; padding: 14px 0;
+            font-size: 1.08rem; font-weight: 500; outline: none; color: var(--text-primary);
+        }
+        #searchInput::placeholder { color: var(--text-muted); font-weight: 400; }
+
+        /* 聚合链接组 */
+        .search-foot { text-align: center; margin-bottom: 36px; }
+        .aggregate-group {
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; flex-wrap: wrap; padding: 0 8px;
+        }
+        .aggregate-link {
+            font-size: 0.88rem; font-weight: 600;
+            background: linear-gradient(135deg, rgba(14,165,233,0.18), rgba(168,85,247,0.15));
+            padding: 9px 18px; border-radius: var(--radius-full);
+            display: inline-flex; align-items: center; gap: 7px;
+            color: var(--text-primary); text-decoration: none;
+            border: 1px solid var(--card-border);
+            transition: all var(--transition-normal);
+            position: relative; overflow: hidden;
+            backdrop-filter: blur(10px); white-space: nowrap;
+        }
+        .aggregate-link::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+            transition: left 0.6s ease;
+        }
+        .aggregate-link:hover {
+            border-color: var(--accent);
+            box-shadow: 0 8px 25px rgba(14,165,233,0.3), 0 0 0 3px rgba(14,165,233,0.15);
+            transform: translateY(-2px);
+        }
+        .aggregate-link:hover::before { left: 100%; }
+
+        /* 网盘网格 */
+        .disk-grid {
+            display: grid; grid-template-columns: repeat(8, 1fr);
+            gap: 20px 18px; margin-bottom: 24px;
+        }
+        .disk-card {
+            background: var(--card-bg); backdrop-filter: blur(22px);
+            border-radius: var(--radius-lg); padding: 24px 14px 20px;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            cursor: pointer; transition: all var(--transition-normal);
+            text-decoration: none; border: 1px solid var(--card-border);
+            position: relative; overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+        .disk-card::before {
+            content: ''; position: absolute; top: -60%; left: -60%;
+            width: 220%; height: 220%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 65%);
+            opacity: 0; transition: opacity var(--transition-normal); pointer-events: none;
+        }
+        .disk-card:hover {
+            transform: translateY(-10px) scale(1.04);
+            border-color: var(--card-hover-border);
+            box-shadow: 0 24px 48px rgba(0,0,0,0.12), 0 0 0 3px var(--card-glow);
+            z-index: 10;
+        }
+        .disk-card:hover::before { opacity: 1; }
+        
+        /* 图标样式 */
+        .disk-icon {
+            width: 72px; height: 72px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 14px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08), inset 0 2px 0 rgba(255,255,255,1);
+            transition: all var(--transition-normal);
+        }
+        .disk-icon i {
+            font-size: 36px;
+            background: linear-gradient(135deg, var(--icon-color, #0ea5e9), var(--icon-color-end, #a855f7));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        .disk-card:hover .disk-icon {
+            transform: scale(1.12) rotate(3deg);
+            background: rgba(255, 255, 255, 0.95);
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12), 0 0 0 3px rgba(14,165,233,0.25), inset 0 2px 0 rgba(255,255,255,1);
+        }
+        
+        .disk-name {
+            font-weight: 600; font-size: 0.9rem; color: var(--text-primary);
+            line-height: 1.3; transition: all var(--transition-normal);
+        }
+        .disk-card:hover .disk-name {
+            color: var(--accent); text-shadow: 0 0 10px rgba(14,165,233,0.3);
+        }
+
+        /* 心灵鸡汤 */
+        .daily-quote {
+            margin-top: 12px; text-align: center; font-size: 1rem; font-weight: 500;
+            color: var(--text-secondary); padding: 14px 20px; cursor: pointer;
+            transition: all var(--transition-normal); background: transparent; border: none;
+            display: inline-flex; align-items: center; gap: 10px;
+            margin-left: 50%; transform: translateX(-50%);
+        }
+        .daily-quote i { color: #ec4899; font-size: 1.15rem; transition: all var(--transition-normal); }
+        .daily-quote:hover { color: var(--text-primary); }
+        .daily-quote:hover i { transform: rotate(-12deg) scale(1.2); color: var(--accent); }
+        .daily-quote.copied i { color: #4ade80; animation: pulse 0.4s ease; }
+        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.4)} }
+
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.03); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--accent), #a855f7);
+            border-radius: 4px; border: 2px solid transparent; background-clip: padding-box;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #a855f7, #ec4899); }
+
+        /* 响应式 */
+        @media (max-width: 1200px) { .disk-grid { grid-template-columns: repeat(7,1fr); gap: 18px 16px; } }
+        @media (max-width: 1024px) { .disk-grid { grid-template-columns: repeat(6,1fr); gap: 16px 14px; } .live-clock { font-size: 3.2rem; } }
+        @media (max-width: 850px) { .disk-grid { grid-template-columns: repeat(5,1fr); gap: 15px 12px; } .live-clock { font-size: 2.8rem; } .live-date { font-size: 1.3rem; } }
+        @media (max-width: 680px) {
+            body { padding: 26px 14px 20px; }
+            .disk-grid { grid-template-columns: repeat(4,1fr); gap: 14px 10px; }
+            .disk-icon { width: 64px; height: 64px; }
+            .disk-icon i { font-size: 30px; }
+            .disk-name { font-size: 0.82rem; }
+            .live-clock { font-size: 2.4rem; letter-spacing: -1.5px; }
+            .live-date { font-size: 1.15rem; }
+            .search-wrapper { max-width: 100%; padding: 8px 22px 8px 22px; }
+            #searchInput { font-size: 0.98rem; }
+            .aggregate-group { gap: 8px; }
+            .aggregate-link { font-size: 0.82rem; padding: 8px 14px; }
+        }
+        @media (max-width: 480px) {
+            .datetime-group { gap: 20px; }
+            .live-clock { font-size: 2rem; }
+            .live-date { font-size: 1rem; }
+            .disk-grid { grid-template-columns: repeat(3,1fr); gap: 12px 9px; }
+            .disk-icon { width: 60px; height: 60px; border-radius: 16px; }
+            .disk-icon i { font-size: 28px; }
+            .disk-name { font-size: 0.8rem; }
+            .daily-quote { font-size: 0.92rem; padding: 12px 16px; margin-top: 8px; }
+            /* 手机端聚合链接横向排列，更紧凑 */
+            .aggregate-group { 
+                flex-direction: row; 
+                flex-wrap: wrap; 
+                gap: 6px; 
+            }
+            .aggregate-link { 
+                font-size: 0.75rem; 
+                padding: 6px 12px; 
+                flex: 0 0 auto; /* 不拉伸，自适应宽度 */
+            }
+        }
+
+        /* 加载动画 */
+        @keyframes fadeInUp { from{opacity:0; transform:translateY(14px) scale(0.95)} to{opacity:1; transform:translateY(0) scale(1)} }
+        .disk-card { animation: fadeInUp 0.4s ease forwards; opacity: 0; }
+        .disk-card:nth-child(n) { animation-delay: 0.02s; }
+
+        a { text-decoration: none; color: inherit; }
+        .visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+        .disk-card:focus-visible, .daily-quote:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    </style>
+</head>
+<body>
+    <!-- 动态背景层 -->
+    <div class="bg-animated">
+        <svg width="100%" height="100%" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+            <path class="bg-curve curve-1" d="M-100,250 C150,100 350,400 600,200 S900,500 1300,300"/>
+            <path class="bg-curve curve-2" d="M100,900 Q200,600 450,450 T850,150 T1200,400"/>
+            <path class="bg-curve curve-3" d="M-50,600 C200,550 300,800 550,650 S800,400 1050,550"/>
+            <path class="bg-curve curve-4" d="M400,-50 Q300,150 500,300 T750,100"/>
+            <path class="bg-curve curve-5" d="M800,900 Q750,600 950,450 T1150,600"/>
+            
+            <circle class="bg-dot dot-1" cx="280" cy="180" r="2.5"/>
+            <circle class="bg-dot dot-2" cx="750" cy="320" r="1.5"/>
+            <circle class="bg-dot dot-3" cx="480" cy="680" r="3"/>
+            <circle class="bg-dot dot-4" cx="1050" cy="520" r="2"/>
+            <circle class="bg-dot dot-5" cx="150" cy="720" r="1"/>
+            
+            <g class="bg-mark mark-1"><path d="M350,250 L358,250 M354,246 L354,254" stroke-width="1"/></g>
+            <g class="bg-mark mark-2"><path d="M850,450 L858,450 M854,446 L854,454" stroke-width="0.8"/></g>
+            <g class="bg-mark mark-3"><path d="M200,550 L208,550 M204,546 L204,554" stroke-width="1.2"/></g>
+            
+            <polygon class="bg-mark mark-1" points="650,500 656,512 650,524 644,512" stroke-width="1"/>
+            <polygon class="bg-mark mark-2" points="1000,200 1005,210 1000,220 995,210" stroke-width="0.8"/>
+            
+            <text class="bg-char char-1" x="420" y="380">✦</text>
+            <text class="bg-char char-2" x="180" y="480">◇</text>
+            <text class="bg-char char-3" x="780" y="280">·</text>
+            <text class="bg-char char-4" x="920" y="650">∼</text>
+            <text class="bg-char char-5" x="110" y="250">✧</text>
+        </svg>
+        <div class="bg-orb orb-1"></div>
+        <div class="bg-orb orb-2"></div>
+        <div class="bg-orb orb-3"></div>
+    </div>
+
+    <div class="main-container">
+        <!-- 时间日期 -->
+        <div class="time-date">
+            <div class="datetime-group">
+                <div class="live-clock" id="clockDisplay" aria-live="polite">--:--:--</div>
+                <div class="live-date" id="dateDisplay">加载中...</div>
+            </div>
+        </div>
+
+        <!-- 百度搜索框 -->
+        <form class="search-wrapper" action="https://www.baidu.com/s" method="GET" target="_blank" role="search">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input type="text" id="searchInput" name="wd" placeholder="百度一下，你就知道" autocomplete="off" aria-label="百度搜索" autofocus>
+        </form>
+
+        <!-- 聚合链接组 -->
+        <div class="search-foot">
+            <div class="aggregate-group">
+                <a href="https://www.zhongchuangwl.com/" target="_blank" rel="noopener" class="aggregate-link">
+                    <i class="fas fa-compass"></i> 聚合盘搜
+                </a>
+                <a href="https://hunhepan.com/" target="_blank" rel="noopener" class="aggregate-link">
+                    <i class="fas fa-layer-group"></i> 混合盘
+                </a>
+                <a href="https://so.252035.xyz/" target="_blank" rel="noopener" class="aggregate-link">
+                    <i class="fas fa-search"></i> 盘搜
+                </a>
+                <a href="https://v2pan.com/?ref=www.qhdh.top&" target="_blank" rel="noopener" class="aggregate-link">
+                    <i class="fas fa-magnifying-glass-location"></i> 找盘
+                </a>
+                <a href="http://bo2000.com/app/index.html?id=211229kl" target="_blank" rel="noopener" class="aggregate-link">
+                    <i class="fas fa-film"></i> 影视网盘
+                </a>
+            </div>
+        </div>
+
+        <!-- 网盘网格 -->
+        <div class="disk-grid" id="diskGrid" role="list"></div>
+
+        <!-- 心灵鸡汤 -->
+        <div class="daily-quote" id="dailyQuote" role="button" tabindex="0" aria-label="点击复制今日语录">
+            <i class="fas fa-feather" aria-hidden="true"></i> 
+            <span id="quoteText">今日一念 · 加载中</span>
+        </div>
+    </div>
+
+<script>
+    // 主题配置
+    const themes = {
+        day: {
+            bg1:'#e0f2fe', bg2:'#f3e8ff', bg3:'#fce7f3', bg4:'#dbeafe',
+            cardBg:'rgba(255,255,255,0.72)', cardBorder:'rgba(255,255,255,0.85)',
+            textPrimary:'#1e293b', textSecondary:'#475569', accent:'#0ea5e9',
+            lineColor:'#475569', lineOpacity:'0.35'
+        },
+        night: {
+            bg1:'#1e1b4b', bg2:'#312e81', bg3:'#1e293b', bg4:'#0f172a',
+            cardBg:'rgba(255,255,255,0.08)', cardBorder:'rgba(255,255,255,0.15)',
+            textPrimary:'#f8fafc', textSecondary:'#cbd5e1', accent:'#22d3ee',
+            lineColor:'#cbd5e1', lineOpacity:'0.2'
+        }
+    };
+
+    // 网盘数据 (32 款，严格排序，图标优化)
+    const domesticDisks = [
+        // 主流综合
+        {name:"百度网盘", url:"https://pan.baidu.com", icon:"fa-cloud", iconColor:"#0ea5e9", iconColorEnd:"#3b82f6", bg:"rgba(254,248,240,0.6)"},
+        {name:"阿里云盘", url:"https://www.aliyundrive.com", icon:"fa-cloud", iconColor:"#f97316", iconColorEnd:"#fb923c", bg:"rgba(241,246,255,0.6)"},
+        {name:"腾讯微云", url:"https://www.weiyun.com", icon:"fa-cloud-sun", iconColor:"#3b82f6", iconColorEnd:"#60a5fa", bg:"rgba(242,245,253,0.6)"},
+        {name:"夸克网盘", url:"https://pan.quark.cn", icon:"fa-atom", iconColor:"#8b5cf6", iconColorEnd:"#a78bfa", bg:"rgba(245,240,255,0.6)"},
+        {name:"迅雷云盘", url:"https://pan.xunlei.com", icon:"fa-bolt", iconColor:"#f59e0b", iconColorEnd:"#fbbf24", bg:"rgba(253,240,243,0.6)"},
+        {name:"坚果云", url:"https://www.jianguoyun.com", icon:"fa-hard-drive", iconColor:"#22c55e", iconColorEnd:"#4ade80", bg:"rgba(243,253,235,0.6)"},
+        
+        // 运营商
+        {name:"中国移动云盘", url:"https://yun.139.com/w/#/", icon:"fa-signal", iconColor:"#dc2626", iconColorEnd:"#ef4444", bg:"rgba(254,246,236,0.6)"},
+        {name:"天翼云盘", url:"https://cloud.189.cn", icon:"fa-satellite-dish", iconColor:"#0ea5e9", iconColorEnd:"#38bdf8", bg:"rgba(240,245,255,0.6)"},
+        {name:"联通云盘", url:"https://pan.wo.cn/login?redirect=%2Fpan%2Ffile_list%2Fall", icon:"fa-phone-volume", iconColor:"#ef4444", iconColorEnd:"#f87171", bg:"rgba(237,246,252,0.6)"},
+        {name:"沃家云盘", url:"https://www.wocloud.com.cn", icon:"fa-house-signal", iconColor:"#f59e0b", iconColorEnd:"#fbbf24", bg:"rgba(238,247,255,0.6)"},
+        
+        // 手机厂商
+        {name:"小米云", url:"https://i.mi.com/", icon:"fa-mobile-screen", iconColor:"#f97316", iconColorEnd:"#fb923c", bg:"rgba(255,248,232,0.6)"},
+        {name:"华为云", url:"https://cloud.huawei.com/", icon:"fa-mobile", iconColor:"#dc2626", iconColorEnd:"#ef4444", bg:"rgba(238,249,244,0.6)"},
+        {name:"OPPO 云", url:"https://cloud.oppo.com/login.html?callback=https%3A%2F%2Fcloud.oppo.com%2F", icon:"fa-mobile-button", iconColor:"#22c55e", iconColorEnd:"#4ade80", bg:"rgba(238,249,242,0.6)"},
+        {name:"VIVO 云", url:"https://yun.vivo.com.cn/welcome", icon:"fa-mobile-retro", iconColor:"#3b82f6", iconColorEnd:"#60a5fa", bg:"rgba(255,249,234,0.6)"},
+        {name:"荣耀云", url:"https://cloud.hihonor.com/findmydevice/webFindOpenPage.html#/", icon:"fa-star", iconColor:"#fbbf24", iconColorEnd:"#fcd34d", bg:"rgba(244,244,249,0.6)"},
+        
+        // 特色轻量
+        {name:"115 网盘", url:"https://115.com", icon:"fa-layer-group", iconColor:"#8b5cf6", iconColorEnd:"#a78bfa", bg:"rgba(255,246,234,0.6)"},
+        {name:"123 云盘", url:"https://www.123pan.com", icon:"fa-list-ol", iconColor:"#0ea5e9", iconColorEnd:"#38bdf8", bg:"rgba(238,249,242,0.6)"},
+        {name:"蓝奏云", url:"https://www.lanzou.com", icon:"fa-heart", iconColor:"#3b82f6", iconColorEnd:"#60a5fa", bg:"rgba(240,245,255,0.6)"},
+        {name:"文叔叔", url:"https://www.wenshushu.cn", icon:"fa-file-lines", iconColor:"#f97316", iconColorEnd:"#fb923c", bg:"rgba(255,248,240,0.6)"},
+        {name:"城通网盘", url:"https://www.ctfile.com", icon:"fa-landmark", iconColor:"#64748b", iconColorEnd:"#94a3b8", bg:"rgba(246,246,246,0.6)"},
+        {name:"小飞机网盘", url:"https://www.feijipan.com", icon:"fa-plane", iconColor:"#0ea5e9", iconColorEnd:"#38bdf8", bg:"rgba(239,241,255,0.6)"},
+        {name:"永硕 E 盘", url:"https://www.ys168.com", icon:"fa-folder-open", iconColor:"#fbbf24", iconColorEnd:"#fcd34d", bg:"rgba(253,246,239,0.6)"},
+        {name:"奶牛快传", url:"https://cowtransfer.com", icon:"fa-cow", iconColor:"#3b82f6", iconColorEnd:"#60a5fa", bg:"rgba(238,243,255,0.6)"},
+        
+        // 其他/企业
+        {name:"360 安全云盘", url:"https://yunpan.360.cn", icon:"fa-shield-halved", iconColor:"#22c55e", iconColorEnd:"#4ade80", bg:"rgba(254,246,234,0.6)"},
+        {name:"UC 网盘", url:"https://drive.uc.cn", icon:"fa-globe", iconColor:"#0ea5e9", iconColorEnd:"#38bdf8", bg:"rgba(236,247,255,0.6)"},
+        {name:"比特球云盘", url:"https://www.bitqiu.com", icon:"fa-futbol", iconColor:"#22c55e", iconColorEnd:"#4ade80", bg:"rgba(237,249,242,0.6)"},
+        {name:"闪秒云", url:"https://www.shuyicloud.com/", icon:"fa-music", iconColor:"#ec4899", iconColorEnd:"#f472b6", bg:"rgba(254,240,244,0.6)"},
+        {name:"慧影云", url:"http://www.cxcpm.com/users/login/", icon:"fa-folder-tree", iconColor:"#8b5cf6", iconColorEnd:"#a78bfa", bg:"rgba(247,244,255,0.6)"},
+        {name:"联想 File", url:"https://www.filez.com/", icon:"fa-file-zipper", iconColor:"#f59e0b", iconColorEnd:"#fbbf24", bg:"rgba(255,248,232,0.6)"},
+        {name:"智慧云", url:"https://wisdomcloud.pispower.com/", icon:"fa-lightbulb", iconColor:"#fbbf24", iconColorEnd:"#fcd34d", bg:"rgba(244,248,255,0.6)"},
+        {name:"360 亿方", url:"https://www.fangcloud.com/", icon:"fa-building", iconColor:"#3b82f6", iconColorEnd:"#60a5fa", bg:"rgba(255,242,242,0.6)"},
+        {name:"Zoho", url:"https://www.zoho.com.cn/workdrive/", icon:"fa-file-contract", iconColor:"#0ea5e9", iconColorEnd:"#38bdf8", bg:"rgba(238,247,255,0.6)"}
+    ];
+
+    function setThemeByTime() {
+        const hour = new Date().getHours();
+        const t = (hour>=7 && hour<18) ? themes.day : themes.night;
+        const r = document.documentElement;
+        r.style.setProperty('--bg-1',t.bg1); r.style.setProperty('--bg-2',t.bg2);
+        r.style.setProperty('--bg-3',t.bg3); r.style.setProperty('--bg-4',t.bg4);
+        r.style.setProperty('--card-bg',t.cardBg); r.style.setProperty('--card-border',t.cardBorder);
+        r.style.setProperty('--text-primary',t.textPrimary); r.style.setProperty('--text-secondary',t.textSecondary);
+        r.style.setProperty('--accent',t.accent); r.style.setProperty('--line-color',t.lineColor);
+        r.style.setProperty('--line-opacity',t.lineOpacity);
+    }
+
+    const gridContainer = document.getElementById('diskGrid');
+    function renderGrid(disks) {
+        if(!gridContainer) return;
+        let html = '';
+        for(let i=0; i<disks.length; i++) {
+            const d = disks[i];
+            html += `<a class="disk-card" href="${d.url}" target="_blank" rel="noopener noreferrer" role="listitem" style="--icon-color:${d.iconColor};--icon-color-end:${d.iconColorEnd}">
+                <div class="disk-icon" style="background:${d.bg};" aria-hidden="true">
+                    <i class="fas ${d.icon}"></i>
+                </div>
+                <div class="disk-name">${escapeHtml(d.name)}</div></a>`;
+        }
+        gridContainer.innerHTML = html;
+        document.querySelectorAll('.disk-card').forEach(c => c.addEventListener('dragstart', e => e.preventDefault()));
+    }
+    function escapeHtml(str) { return str.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clockDisplay').textContent = 
+            `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+        const week = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][now.getDay()];
+        document.getElementById('dateDisplay').textContent = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 ${week}`;
+    }
+
+    const quotes = ["🌱 心之所向，素履以往。","⭐ 今天是你余生中最年轻的一天。","🌸 不必行色匆匆，只需做自己。","🍃 温柔地坚持，时间会给你答案。","🌈 万物皆有裂痕，那是光照进来的地方。","💪 微小的进步也值得庆祝。","📖 与其在别人生活里跑龙套，不如精彩做自己。","🌻 先成为自己的光，再温暖他人。","🚀 你只管努力，剩下的交给时间。","✨ 所有的好运，都是你积累的温柔。","🎯 种一棵树最好的时间是十年前，其次是现在。","💎 不要因为没有掌声就放弃梦想。","🌊 山高路远，看世界也找自己。","🍀 运气是机会碰上了你的努力。","🎨 生活本是沉闷，跑起来就有风。","🧘 向内寻找，会发现宝藏。","🏔️ 跨过星河，去迎接更好的自己。","🌟 保持热爱，奔赴山海。","🍁 且停且忘且随风，且行且看且从容。","🌙 睡前原谅一切，醒来便是新生。"];
+    let currentQuote = "";
+    function setDailyQuote() {
+        const today = new Date();
+        const seed = today.getFullYear()*366 + (today.getMonth()+1)*31 + today.getDate();
+        currentQuote = quotes[seed % quotes.length];
+        document.getElementById('quoteText').textContent = currentQuote;
+    }
+    async function copyQuote() {
+        const quoteDiv = document.getElementById('dailyQuote');
+        const quoteText = document.getElementById('quoteText');
+        const original = quoteText.textContent;
+        try { await navigator.clipboard.writeText(currentQuote); }
+        catch(e) { const ta=document.createElement('textarea'); ta.value=currentQuote; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+        quoteText.textContent = '已复制 ✓'; quoteDiv.classList.add('copied');
+        setTimeout(() => { quoteText.textContent=original; quoteDiv.classList.remove('copied'); }, 1600);
+    }
+
+    function init() {
+        setThemeByTime(); setInterval(setThemeByTime, 60000);
+        renderGrid(domesticDisks);
+        updateClock(); setInterval(updateClock, 1000);
+        setDailyQuote();
+        document.getElementById('dailyQuote').addEventListener('click', copyQuote);
+    }
+    document.readyState==='loading' ? document.addEventListener('DOMContentLoaded', init) : init();
+</script>
+</body>
+</html>
